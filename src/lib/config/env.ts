@@ -1,0 +1,71 @@
+/**
+ * Environment configuration — mirrors ACL pattern.
+ * All env vars accessed through this module, never directly.
+ */
+
+function requireEnv(key: string): string {
+  const value = process.env[key];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+  return value;
+}
+
+function optionalEnv(key: string, defaultValue?: string): string | undefined {
+  return process.env[key] ?? defaultValue;
+}
+
+/** AI configuration — supports both direct Anthropic and OpenRouter */
+export const aiConfig = {
+  /** OpenRouter API key (preferred for now) */
+  get openRouterApiKey() {
+    return optionalEnv("OPENROUTER_API_KEY");
+  },
+  /** Direct Anthropic API key (future) */
+  get anthropicApiKey() {
+    return optionalEnv("ANTHROPIC_API_KEY");
+  },
+  /** Model identifier — OpenRouter format: "anthropic/claude-sonnet-4-6", direct: "claude-sonnet-4-6" */
+  get model() {
+    return optionalEnv("ANTHROPIC_MODEL", "anthropic/claude-sonnet-4-6") as string;
+  },
+  /** Which provider to use */
+  get provider(): "openrouter" | "anthropic" {
+    if (optionalEnv("OPENROUTER_API_KEY")) return "openrouter";
+    if (optionalEnv("ANTHROPIC_API_KEY")) return "anthropic";
+    throw new Error("Either OPENROUTER_API_KEY or ANTHROPIC_API_KEY must be set");
+  },
+};
+
+/** Supabase configuration */
+export const supabaseConfig = {
+  get url() {
+    return requireEnv("NEXT_PUBLIC_SUPABASE_URL");
+  },
+  get anonKey() {
+    return requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  },
+  get serviceKey() {
+    return requireEnv("SUPABASE_SERVICE_KEY");
+  },
+};
+
+/** Email configuration */
+export const emailConfig = {
+  get resendApiKey() {
+    return optionalEnv("RESEND_API_KEY");
+  },
+};
+
+/** SMS configuration */
+export const smsConfig = {
+  get twilioAccountSid() {
+    return optionalEnv("TWILIO_ACCOUNT_SID");
+  },
+  get twilioAuthToken() {
+    return optionalEnv("TWILIO_AUTH_TOKEN");
+  },
+  get twilioPhoneNumber() {
+    return optionalEnv("TWILIO_PHONE_NUMBER");
+  },
+};
