@@ -29,6 +29,16 @@ export default function BoardLayout({ children }: { children: React.ReactNode })
               Dashboard
             </Link>
             <Link
+              href="/board/drivers"
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                pathname === "/board/drivers"
+                  ? "bg-blue-50 text-blue-700"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+              }`}
+            >
+              Drivers
+            </Link>
+            <Link
               href="/board/upload"
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                 pathname === "/board/upload"

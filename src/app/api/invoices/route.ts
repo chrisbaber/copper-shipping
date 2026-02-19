@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     .from("loads")
     .insert({
       load_number: body.invoiceNumber || `KFB-${Date.now()}`,
-      status: "invoiced",
+      status: "created",
       shipper_name: body.shipperName,
       shipper_address: body.shipperAddress,
       pickup_address: body.pickupAddress,

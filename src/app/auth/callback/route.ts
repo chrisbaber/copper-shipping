@@ -29,7 +29,10 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      const { data: { user } } = await supabase.auth.getUser();
+      const role = user?.user_metadata?.role || "broker";
+      const destination = role === "driver" ? "/driver" : "/board";
+      return NextResponse.redirect(`${origin}${next === "/board" ? destination : next}`);
     }
   }
 

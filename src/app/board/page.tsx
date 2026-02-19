@@ -17,6 +17,8 @@ interface InvoiceRow {
     shipper_name: string;
     pickup_address: string;
     delivery_address: string;
+    status: string;
+    driver_name: string | null;
   } | null;
 }
 
@@ -164,7 +166,13 @@ export default function BoardDashboard() {
                 </div>
                 <p className="text-xs text-slate-500 truncate mt-0.5">
                   {inv.bill_to_name || "—"} &middot; {(inv.created_at || "").split("T")[0]}
+                  {inv.loads?.driver_name && ` · ${inv.loads.driver_name}`}
                 </p>
+                {inv.loads?.status && !["delivered", "invoiced", "paid"].includes(inv.loads.status) && inv.loads.status !== "created" && (
+                  <span className="inline-flex items-center rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[9px] font-semibold text-slate-500 uppercase tracking-wider mt-1">
+                    {inv.loads.status === "tendered" ? "Tendered" : inv.loads.status === "accepted" ? "Accepted" : inv.loads.status === "in_transit" ? "In Transit" : inv.loads.status}
+                  </span>
+                )}
               </div>
 
               {/* Amount + actions */}

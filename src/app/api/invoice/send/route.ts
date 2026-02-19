@@ -57,9 +57,32 @@ export async function POST(req: NextRequest) {
     const linehaul = formData.get("linehaul") as string || "0";
     const fuelSurcharge = formData.get("fuelSurcharge") as string || "0";
     const accessorial = formData.get("accessorial") as string || "0";
+    const loadId = formData.get("loadId") as string || "";
 
     if (!pdfFile || !to) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Server-side delivery gate: check load status before sending
+    if (loadId) {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const key = process.env.SUPABASE_SERVICE_KEY;
+      if (url && key) {
+        const supabase = createClient(url, key, {
+          auth: { autoRefreshToken: false, persistSession: false },
+        });
+        const { data: load } = await supabase
+          .from("loads")
+          .select("status")
+          .eq("id", loadId)
+          .single();
+        if (load && !["delivered", "invoiced", "paid"].includes(load.status)) {
+          return NextResponse.json(
+            { error: "Cannot send invoice — load must be delivered first." },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     // Fetch dynamic settings from DB

@@ -27,6 +27,11 @@ export interface Load {
   margin: number | null;
   bol_number: string | null;
   notes: string | null;
+  driver_id: string | null;
+  tendered_at: string | null;
+  accepted_at: string | null;
+  picked_up_at: string | null;
+  delivered_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -57,5 +62,37 @@ export interface Document {
   file_url: string;
   file_name: string | null;
   extracted_data: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface Profile {
+  id: string;
+  email: string;
+  name: string;
+  role: 'broker' | 'driver';
+  phone: string | null;
+  mc_number: string | null;
+  dot_number: string | null;
+  truck_number: string | null;
+  truck_tag: string | null;
+  equipment: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DriverInvitation {
+  id: string;
+  email: string;
+  name: string;
+  phone: string | null;
+  mc_number: string | null;
+  dot_number: string | null;
+  truck_number: string | null;
+  truck_tag: string | null;
+  equipment: string | null;
+  invite_token: string;
+  state: 'pending' | 'accepted' | 'expired';
+  invited_by: string | null;
+  expires_at: string;
   created_at: string;
 }

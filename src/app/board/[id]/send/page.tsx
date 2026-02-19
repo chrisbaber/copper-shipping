@@ -28,6 +28,8 @@ export default function SendPage({ params }: { params: Promise<{ id: string }> }
   const [emailTo, setEmailTo] = useState("");
   const [emailSent, setEmailSent] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [loadNotDelivered, setLoadNotDelivered] = useState(false);
+  const [loadStatus, setLoadStatus] = useState<string>("");
 
   useEffect(() => {
     async function loadAndGenerate() {
@@ -44,6 +46,12 @@ export default function SendPage({ params }: { params: Promise<{ id: string }> }
         const { data } = await res.json();
         const { load, invoice, documents } = data;
         const brokerSettings = settingsRes.ok ? (await settingsRes.json()).data as BrokerSettings : null;
+
+        // Track load status for gating
+        const status = (load.status as string) || "created";
+        setLoadStatus(status);
+        const deliveredOrLater = ["delivered", "invoiced", "paid"].includes(status);
+        setLoadNotDelivered(!deliveredOrLater);
 
         const bolDoc = documents?.find((d: Record<string, unknown>) => d.type === "bol");
         const extracted = bolDoc?.extracted_data as Record<string, unknown> | null;
@@ -77,10 +85,10 @@ export default function SendPage({ params }: { params: Promise<{ id: string }> }
           routing: {
             shipperName: (load.shipper_name as string) || "",
             originSite: (load.pickup_address as string) || "",
-            pickupDate: toDisplayDate((load.pickup_date as string) || ""),
+            pickupDate: toDisplayDate((load.picked_up_at as string) || (load.pickup_date as string) || ""),
             receiverName: (extracted?.shipTo as Record<string, string>)?.name || "",
             deliverySite: (load.delivery_address as string) || "",
-            deliveryDate: toDisplayDate((load.delivery_date as string) || ""),
+            deliveryDate: toDisplayDate((load.delivered_at as string) || (load.delivery_date as string) || ""),
             mcLoadNumber: (load.bol_number as string) || "",
           },
           charges: {
@@ -130,6 +138,7 @@ export default function SendPage({ params }: { params: Promise<{ id: string }> }
       const formData = new FormData();
       formData.append("pdf", pdfBlob, `Invoice-${invoiceData.invoiceNumber}.pdf`);
       formData.append("to", emailTo);
+      formData.append("loadId", id);
       formData.append("invoiceNumber", invoiceData.invoiceNumber);
       formData.append("amount", invoiceData.charges.totalAmountDue.toString());
       formData.append("brokerName", invoiceData.broker.companyName);
@@ -254,8 +263,24 @@ export default function SendPage({ params }: { params: Promise<{ id: string }> }
         </button>
       </div>
 
+      {/* Invoice Gating Banner */}
+      {loadNotDelivered && (
+        <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 p-4">
+          <svg className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15.75h.008v.008H12v-.008z" />
+          </svg>
+          <div>
+            <p className="text-sm font-medium text-amber-800">Cannot send invoice yet</p>
+            <p className="text-xs text-amber-600 mt-0.5">
+              Load status is &ldquo;{loadStatus}&rdquo;. The driver must complete delivery before the invoice can be sent.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Email Send Card */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-3">
+      <div className={`rounded-xl border border-slate-200 bg-white p-5 space-y-3 ${loadNotDelivered ? "opacity-50 pointer-events-none" : ""}`}>
         <div className="flex items-center gap-2">
           <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />

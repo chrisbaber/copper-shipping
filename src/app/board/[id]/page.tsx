@@ -50,10 +50,10 @@ function buildInvoiceFromDb(load: Record<string, string | number | null>, invoic
     routing: {
       shipperName: (load.shipper_name as string) || "",
       originSite: (load.pickup_address as string) || "",
-      pickupDate: toDisplayDate((load.pickup_date as string) || ""),
+      pickupDate: toDisplayDate((load.picked_up_at as string) || (load.pickup_date as string) || ""),
       receiverName: (extracted?.shipTo as Record<string, string>)?.name || "",
       deliverySite: (load.delivery_address as string) || "",
-      deliveryDate: toDisplayDate((load.delivery_date as string) || ""),
+      deliveryDate: toDisplayDate((load.delivered_at as string) || (load.delivery_date as string) || ""),
       mcLoadNumber: (load.bol_number as string) || "",
     },
     charges: {
@@ -65,6 +65,13 @@ function buildInvoiceFromDb(load: Record<string, string | number | null>, invoic
   };
 }
 
+interface DriverOption {
+  id: string;
+  name: string;
+  truck_number: string | null;
+  mc_number: string | null;
+}
+
 export default function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -72,13 +79,18 @@ export default function ReviewPage({ params }: { params: Promise<{ id: string }>
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [drivers, setDrivers] = useState<DriverOption[]>([]);
+  const [assignedDriverId, setAssignedDriverId] = useState<string | null>(null);
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [loadStatus, setLoadStatus] = useState<string>("created");
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [invoiceRes, settingsRes] = await Promise.all([
+        const [invoiceRes, settingsRes, driversRes] = await Promise.all([
           fetch(`/api/invoices/${id}`),
           fetch("/api/settings"),
+          fetch("/api/drivers"),
         ]);
         if (!invoiceRes.ok) {
           setError("Load not found");
@@ -89,6 +101,13 @@ export default function ReviewPage({ params }: { params: Promise<{ id: string }>
         const settingsData = settingsRes.ok ? (await settingsRes.json()).data as BrokerSettings : null;
         const invoiceFromDb = buildInvoiceFromDb(data.load, data.invoice, data.documents || [], settingsData);
         setInvoiceData(invoiceFromDb);
+        setAssignedDriverId(data.load.driver_id || null);
+        setLoadStatus(data.load.status || "created");
+
+        if (driversRes.ok) {
+          const { drivers: driverList } = await driversRes.json();
+          setDrivers(driverList || []);
+        }
       } catch {
         setError("Failed to load invoice data");
       } finally {
@@ -97,6 +116,41 @@ export default function ReviewPage({ params }: { params: Promise<{ id: string }>
     }
     loadData();
   }, [id]);
+
+  const handleAssignDriver = async (driverId: string) => {
+    if (!driverId) return;
+    setIsAssigning(true);
+    try {
+      const res = await fetch(`/api/loads/${id}/assign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ driverId }),
+      });
+      if (res.ok) {
+        const { data: updatedLoad } = await res.json();
+        setAssignedDriverId(driverId);
+        setLoadStatus(updatedLoad.status);
+        // Update invoice data with driver info
+        if (invoiceData) {
+          setInvoiceData({
+            ...invoiceData,
+            shipment: {
+              ...invoiceData.shipment,
+              motorCarrier: updatedLoad.carrier_name || invoiceData.shipment.motorCarrier,
+              mcAuthority: updatedLoad.carrier_mc || invoiceData.shipment.mcAuthority,
+              usDot: updatedLoad.carrier_dot || invoiceData.shipment.usDot,
+              driverName: updatedLoad.driver_name || invoiceData.shipment.driverName,
+              truckNumber: updatedLoad.truck_number || invoiceData.shipment.truckNumber,
+            },
+          });
+        }
+      }
+    } catch {
+      // Failed to assign
+    } finally {
+      setIsAssigning(false);
+    }
+  };
 
   const handleGeneratePdf = async () => {
     if (!invoiceData) return;
@@ -172,6 +226,45 @@ export default function ReviewPage({ params }: { params: Promise<{ id: string }>
           &larr; Dashboard
         </button>
       </div>
+
+      {/* Driver Assignment */}
+      {drivers.length > 0 && (
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+            </svg>
+            <h3 className="text-sm font-semibold text-slate-800">Assign Driver</h3>
+            {assignedDriverId && (
+              <span className="inline-flex items-center rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-700 uppercase tracking-wider ml-auto">
+                {loadStatus === "tendered" ? "Tendered" : loadStatus === "accepted" ? "Accepted" : loadStatus === "in_transit" ? "In Transit" : loadStatus === "delivered" ? "Delivered" : loadStatus}
+              </span>
+            )}
+          </div>
+          <select
+            value={assignedDriverId || ""}
+            onChange={(e) => handleAssignDriver(e.target.value)}
+            disabled={isAssigning}
+            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            <option value="">Select a driver...</option>
+            {drivers.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}{d.truck_number ? ` — Truck #${d.truck_number}` : ""}{d.mc_number ? ` (MC-${d.mc_number})` : ""}
+              </option>
+            ))}
+          </select>
+          {isAssigning && (
+            <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
+              <svg className="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Assigning driver and auto-filling carrier info...
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Rate input card */}
       <div className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 p-5 text-white shadow-lg shadow-blue-600/20">
