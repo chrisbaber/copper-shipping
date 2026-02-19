@@ -45,12 +45,17 @@ const EMPTY_SETTINGS: Settings = {
   contactEmail: "",
 };
 
-function buildSampleInvoice(s: Settings): InvoiceData {
+type PreviewMode = "sample" | "blank";
+
+const BLANK = "________";
+
+function buildSampleInvoice(s: Settings, mode: PreviewMode): InvoiceData {
   const now = new Date();
   const today = `${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}-${now.getFullYear()}`;
+  const blank = mode === "blank";
 
   return {
-    invoiceNumber: "SAMPLE-001",
+    invoiceNumber: blank ? BLANK : "SAMPLE-001",
     invoiceDate: today,
     broker: {
       companyName: s.companyName || "Your Company Name",
@@ -71,38 +76,38 @@ function buildSampleInvoice(s: Settings): InvoiceData {
       contactEmail: s.contactEmail || "email@example.com",
     },
     shipment: {
-      brokerLoadNumber: "KFB #10000",
-      motorCarrier: "ABC Trucking Co.",
-      mcAuthority: "MC-123456",
-      usDot: "1234567",
-      equipment: "53' Dry Van",
-      commodity: "General Freight, 20 pallets",
-      weight: "40,000 lbs",
-      driverName: "John Doe",
-      truckTag: "TX ABC-1234",
-      truckNumber: "T-5678",
+      brokerLoadNumber: blank ? BLANK : "KFB #10000",
+      motorCarrier: blank ? BLANK : "ABC Trucking Co.",
+      mcAuthority: blank ? BLANK : "MC-123456",
+      usDot: blank ? BLANK : "1234567",
+      equipment: blank ? BLANK : "53' Dry Van",
+      commodity: blank ? BLANK : "General Freight, 20 pallets",
+      weight: blank ? BLANK : "40,000 lbs",
+      driverName: blank ? BLANK : "John Doe",
+      truckTag: blank ? BLANK : "TX ABC-1234",
+      truckNumber: blank ? BLANK : "T-5678",
     },
     billTo: {
-      name: "Sample Shipper Co.",
-      address: "123 Main Street",
-      city: "Dallas",
-      state: "TX",
-      zip: "75201",
+      name: blank ? BLANK : "Sample Shipper Co.",
+      address: blank ? BLANK : "123 Main Street",
+      city: blank ? BLANK : "Dallas",
+      state: blank ? "" : "TX",
+      zip: blank ? "" : "75201",
     },
     routing: {
-      shipperName: "Sample Shipper Co.",
-      originSite: "123 Main St, Dallas, TX",
-      pickupDate: "01-15-2026",
-      receiverName: "Sample Receiver Inc.",
-      deliverySite: "456 Oak Ave, Houston, TX",
-      deliveryDate: "01-16-2026",
-      mcLoadNumber: "BOL-00001",
+      shipperName: blank ? BLANK : "Sample Shipper Co.",
+      originSite: blank ? BLANK : "123 Main St, Dallas, TX",
+      pickupDate: blank ? BLANK : "01-15-2026",
+      receiverName: blank ? BLANK : "Sample Receiver Inc.",
+      deliverySite: blank ? BLANK : "456 Oak Ave, Houston, TX",
+      deliveryDate: blank ? BLANK : "01-16-2026",
+      mcLoadNumber: blank ? BLANK : "BOL-00001",
     },
     charges: {
-      linehaul: 1500.0,
-      fuelSurcharge: 150.0,
+      linehaul: blank ? 0 : 1500.0,
+      fuelSurcharge: blank ? 0 : 150.0,
       accessorial: 0,
-      totalAmountDue: 1650.0,
+      totalAmountDue: blank ? 0 : 1650.0,
     },
   };
 }
@@ -142,6 +147,7 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("sample");
 
   useEffect(() => {
     async function load() {
@@ -163,7 +169,7 @@ export default function SettingsPage() {
     if (loading) return;
     const timer = setTimeout(async () => {
       try {
-        const sampleData = buildSampleInvoice(settings);
+        const sampleData = buildSampleInvoice(settings, previewMode);
         const doc = <InvoiceDocument data={sampleData} logoUrl="/kfb-logo.png" />;
         const blob = await pdf(doc).toBlob();
         const url = URL.createObjectURL(blob);
@@ -176,7 +182,7 @@ export default function SettingsPage() {
       }
     }, 800);
     return () => clearTimeout(timer);
-  }, [settings, loading]);
+  }, [settings, loading, previewMode]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -343,9 +349,28 @@ export default function SettingsPage() {
               </svg>
               <h3 className="text-sm font-semibold text-slate-800">Invoice Preview</h3>
             </div>
-            <p className="text-xs text-slate-500 mb-3">
-              Live preview with sample data — your settings applied
-            </p>
+            <div className="flex items-center gap-1 mb-3 rounded-lg border border-slate-200 bg-slate-50 p-0.5 w-fit">
+              <button
+                onClick={() => setPreviewMode("sample")}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+                  previewMode === "sample"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                Sample Data
+              </button>
+              <button
+                onClick={() => setPreviewMode("blank")}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+                  previewMode === "blank"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                Blank
+              </button>
+            </div>
             {previewUrl ? (
               <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
                 <iframe src={previewUrl} className="w-full h-[700px]" title="Invoice Preview" />
