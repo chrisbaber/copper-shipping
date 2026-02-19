@@ -1,11 +1,12 @@
 /**
  * Central AI client — Google Gemini Flash (direct API).
- * Free tier: 15 RPM, 1M tokens/day.
+ * Falls back to OpenRouter if Google quota is exhausted.
  */
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const MODEL = "gemini-2.0-flash";
+const GEMINI_MODEL = "gemini-2.0-flash";
+const OPENROUTER_MODEL = "google/gemini-2.0-flash-exp:free";
 
 export interface ContentPart {
   type: "text" | "image_url";
@@ -21,15 +22,34 @@ export interface ChatMessage {
 }
 
 export async function chatCompletion(messages: ChatMessage[]): Promise<string> {
-  const apiKey = process.env.GOOGLE_AI_API_KEY?.trim();
-  if (!apiKey) {
-    throw new Error("GOOGLE_AI_API_KEY is not set");
+  const googleKey = process.env.GOOGLE_AI_API_KEY?.trim();
+  const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
+
+  // Try Google direct first
+  if (googleKey) {
+    try {
+      return await geminiCompletion(messages, googleKey);
+    } catch (err) {
+      // If quota exceeded and we have OpenRouter, fall back
+      if (openRouterKey && String(err).includes("429")) {
+        console.warn("Google AI quota exceeded, falling back to OpenRouter");
+        return openRouterCompletion(messages, openRouterKey);
+      }
+      throw err;
+    }
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const gemini = genAI.getGenerativeModel({ model: MODEL });
+  if (openRouterKey) {
+    return openRouterCompletion(messages, openRouterKey);
+  }
 
-  // Convert our message format to Gemini parts
+  throw new Error("No AI API key configured. Set GOOGLE_AI_API_KEY or OPENROUTER_API_KEY.");
+}
+
+async function geminiCompletion(messages: ChatMessage[], apiKey: string): Promise<string> {
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const gemini = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+
   const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
 
   for (const msg of messages) {
@@ -44,10 +64,7 @@ export async function chatCompletion(messages: ChatMessage[]): Promise<string> {
           const match = dataUrl.match(/^data:(.+?);base64,(.+)$/);
           if (match) {
             parts.push({
-              inlineData: {
-                mimeType: match[1],
-                data: match[2],
-              },
+              inlineData: { mimeType: match[1], data: match[2] },
             });
           }
         }
@@ -57,8 +74,33 @@ export async function chatCompletion(messages: ChatMessage[]): Promise<string> {
 
   const result = await gemini.generateContent(parts);
   const text = result.response.text();
-  if (!text) {
-    throw new Error("No content in Gemini response");
-  }
+  if (!text) throw new Error("No content in Gemini response");
   return text;
+}
+
+async function openRouterCompletion(messages: ChatMessage[], apiKey: string): Promise<string> {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://copper-shipping.vercel.app",
+      "X-Title": "Copper Shipping",
+    },
+    body: JSON.stringify({
+      model: OPENROUTER_MODEL,
+      max_tokens: 2000,
+      messages,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`OpenRouter API error (${response.status}): ${errorBody}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error("No content in OpenRouter response");
+  return content;
 }
