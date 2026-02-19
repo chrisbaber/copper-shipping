@@ -4,7 +4,7 @@
  */
 
 function requireEnv(key: string): string {
-  const value = process.env[key];
+  const value = process.env[key]?.trim();
   if (!value) {
     throw new Error(`Missing required environment variable: ${key}`);
   }
@@ -12,7 +12,7 @@ function requireEnv(key: string): string {
 }
 
 function optionalEnv(key: string, defaultValue?: string): string | undefined {
-  return process.env[key] ?? defaultValue;
+  return process.env[key]?.trim() ?? defaultValue;
 }
 
 /** AI configuration — supports both direct Anthropic and OpenRouter */
@@ -25,9 +25,9 @@ export const aiConfig = {
   get anthropicApiKey() {
     return optionalEnv("ANTHROPIC_API_KEY");
   },
-  /** Model identifier — OpenRouter format: "anthropic/claude-sonnet-4-6", direct: "claude-sonnet-4-6" */
+  /** Model identifier — OpenRouter format, e.g. "google/gemini-2.0-flash-exp:free" */
   get model() {
-    return optionalEnv("ANTHROPIC_MODEL", "anthropic/claude-sonnet-4-6") as string;
+    return optionalEnv("ANTHROPIC_MODEL", "google/gemini-2.0-flash-exp:free") as string;
   },
   /** Which provider to use */
   get provider(): "openrouter" | "anthropic" {

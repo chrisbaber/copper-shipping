@@ -53,7 +53,7 @@ async function openRouterCompletion(messages: ChatMessage[]): Promise<string> {
       "X-Title": "Copper Shipping",
     },
     body: JSON.stringify({
-      model: aiConfig.model,
+      model: aiConfig.model.trim(),
       max_tokens: 2000,
       messages,
     }),
