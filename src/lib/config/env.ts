@@ -50,10 +50,19 @@ export const supabaseConfig = {
   },
 };
 
-/** Email configuration */
+/** SMTP email configuration */
 export const emailConfig = {
-  get resendApiKey() {
-    return optionalEnv("RESEND_API_KEY");
+  get host() {
+    return optionalEnv("SMTP_HOST");
+  },
+  get port() {
+    return Number(optionalEnv("SMTP_PORT", "587"));
+  },
+  get user() {
+    return optionalEnv("SMTP_USER");
+  },
+  get pass() {
+    return optionalEnv("SMTP_PASS");
   },
 };
 

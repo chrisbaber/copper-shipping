@@ -1,13 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 
 export const maxDuration = 15;
 
 export async function POST(req: NextRequest) {
   try {
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
       return NextResponse.json(
-        { error: "Email sending is not configured. Please add RESEND_API_KEY." },
+        { error: "Email sending is not configured. Please add SMTP credentials." },
         { status: 503 }
       );
     }
@@ -23,51 +23,45 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Convert PDF to base64
     const pdfBytes = await pdfFile.arrayBuffer();
-    const pdfBase64 = Buffer.from(pdfBytes).toString("base64");
+    const pdfBuffer = Buffer.from(pdfBytes);
 
-    // Send via Resend
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
-      body: JSON.stringify({
-        from: `${brokerName} <invoices@copperasset.com>`,
-        to: [to],
-        subject: `Invoice ${invoiceNumber} — ${brokerName}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #1a56db;">Invoice ${invoiceNumber}</h2>
-            <p>Please find attached your invoice from <strong>${brokerName}</strong>.</p>
-            <p style="font-size: 18px; font-weight: bold; color: #1a1a1a;">
-              Amount Due: $${Number.parseFloat(amount).toFixed(2)}
-            </p>
-            <p>If you have any questions about this invoice, please don't hesitate to contact us.</p>
-            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
-            <p style="color: #999; font-size: 12px;">
-              Thank you for selecting ${brokerName} for your logistical services.
-            </p>
-          </div>
-        `,
-        attachments: [
-          {
-            filename: `Invoice-${invoiceNumber}.pdf`,
-            content: pdfBase64,
-          },
-        ],
-      }),
     });
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      return NextResponse.json(
-        { error: `Failed to send email: ${errorBody}` },
-        { status: 500 }
-      );
-    }
+    await transporter.sendMail({
+      from: `"${brokerName}" <${process.env.SMTP_USER}>`,
+      to,
+      subject: `Invoice ${invoiceNumber} — ${brokerName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #1a56db;">Invoice ${invoiceNumber}</h2>
+          <p>Please find attached your invoice from <strong>${brokerName}</strong>.</p>
+          <p style="font-size: 18px; font-weight: bold; color: #1a1a1a;">
+            Amount Due: $${Number.parseFloat(amount).toFixed(2)}
+          </p>
+          <p>If you have any questions about this invoice, please don't hesitate to contact us.</p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+          <p style="color: #999; font-size: 12px;">
+            Thank you for selecting ${brokerName} for your logistical services.
+          </p>
+        </div>
+      `,
+      attachments: [
+        {
+          filename: `Invoice-${invoiceNumber}.pdf`,
+          content: pdfBuffer,
+          contentType: "application/pdf",
+        },
+      ],
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
