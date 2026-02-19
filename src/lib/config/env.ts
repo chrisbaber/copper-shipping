@@ -37,6 +37,20 @@ export const aiConfig = {
   },
 };
 
+/**
+ * Canonical site URL used for auth redirects (magic links, OAuth callbacks).
+ * Falls back through: NEXT_PUBLIC_SITE_URL → NEXT_PUBLIC_VERCEL_URL → localhost.
+ */
+export function getSiteUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (explicit) return explicit.replace(/\/+$/, "");
+
+  const vercel = process.env.NEXT_PUBLIC_VERCEL_URL?.trim();
+  if (vercel) return `https://${vercel}`;
+
+  return "http://localhost:3000";
+}
+
 /** Supabase configuration */
 export const supabaseConfig = {
   get url() {

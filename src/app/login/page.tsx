@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getSiteUrl } from "@/lib/config/env";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -23,7 +24,7 @@ export default function LoginPage() {
     if (mode === "magic") {
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${window.location.origin}/app` },
+        options: { emailRedirectTo: `${getSiteUrl()}/app` },
       });
       if (error) {
         setError(error.message);
