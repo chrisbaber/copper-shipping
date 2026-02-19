@@ -484,7 +484,7 @@ export default function Home() {
 
             {/* PDF Preview */}
             <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-              <iframe src={pdfUrl} className="w-full h-[500px]" title="Invoice PDF Preview" />
+              <iframe src={pdfUrl} className="w-full h-[400px] sm:h-[500px]" title="Invoice PDF Preview" />
             </div>
 
             {/* Action buttons */}

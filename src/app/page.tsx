@@ -96,7 +96,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative pt-32 pb-24 px-6">
+      <section className="relative pt-24 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6">
         {/* 3D Particle tunnel background */}
         <ParticleTunnelLoader />
         {/* Fallback gradient orbs (visible while Three.js loads) */}
@@ -121,22 +121,22 @@ export default function LandingPage() {
             Delivered On Time.
           </h1>
 
-          <p className="text-lg sm:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed mb-10">
+          <p className="text-base sm:text-lg md:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed mb-8 sm:mb-10">
             Kingdom Family Brokerage connects shippers with reliable carriers across Texas
             and beyond. Asset-based trucking, expert brokerage, and freight agent training — all under one roof.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto">
             <a
               href="#contact"
-              className="group relative rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all"
+              className="group relative w-full sm:w-auto text-center rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all"
             >
               Request a Quote
               <span className="ml-2 inline-block transition-transform group-hover:translate-x-1">&rarr;</span>
             </a>
             <a
               href="#services"
-              className="rounded-full border border-white/15 px-8 py-3.5 text-sm font-medium text-white/70 hover:text-white hover:border-white/30 hover:bg-white/[0.03] transition-all"
+              className="w-full sm:w-auto text-center rounded-full border border-white/15 px-8 py-3.5 text-sm font-medium text-white/70 hover:text-white hover:border-white/30 hover:bg-white/[0.03] transition-all"
             >
               Our Services
             </a>
@@ -144,7 +144,7 @@ export default function LandingPage() {
         </div>
 
         {/* Stats bar */}
-        <div className="relative z-10 mx-auto max-w-3xl mt-20 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="relative z-10 mx-auto max-w-3xl mt-12 sm:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {[
             { value: "MC# 1750411", label: "Licensed & Bonded" },
             { value: "7+", label: "Carrier Partners" },
@@ -153,7 +153,7 @@ export default function LandingPage() {
           ].map((stat) => (
             <div
               key={stat.label}
-              className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 text-center backdrop-blur-sm"
+              className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 sm:p-5 text-center backdrop-blur-sm"
             >
               <p className="text-xl font-bold text-white">{stat.value}</p>
               <p className="text-[11px] font-medium text-white/40 uppercase tracking-wider mt-1">{stat.label}</p>
@@ -163,7 +163,7 @@ export default function LandingPage() {
       </section>
 
       {/* Services — Bento Grid */}
-      <section id="services" className="py-24 px-6">
+      <section id="services" className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <p className="text-[12px] font-semibold text-blue-400 uppercase tracking-widest mb-3">What We Do</p>
@@ -177,7 +177,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Large card — Freight Brokerage */}
-            <div className="md:col-span-2 group rounded-3xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-transparent p-8 hover:border-white/[0.12] transition-all">
+            <div className="md:col-span-2 group rounded-3xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-transparent p-6 sm:p-8 hover:border-white/[0.12] transition-all">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/10 mb-6">
                 <svg className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v1.5" />
@@ -192,7 +192,7 @@ export default function LandingPage() {
             </div>
 
             {/* Asset-based trucking */}
-            <div className="group rounded-3xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-transparent p-8 hover:border-white/[0.12] transition-all">
+            <div className="group rounded-3xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-transparent p-6 sm:p-8 hover:border-white/[0.12] transition-all">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 mb-6">
                 <svg className="h-6 w-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
@@ -206,7 +206,7 @@ export default function LandingPage() {
             </div>
 
             {/* Construction Materials */}
-            <div className="group rounded-3xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-transparent p-8 hover:border-white/[0.12] transition-all">
+            <div className="group rounded-3xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-transparent p-6 sm:p-8 hover:border-white/[0.12] transition-all">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 mb-6">
                 <svg className="h-6 w-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3H21m-3.75 3H21" />
@@ -220,7 +220,7 @@ export default function LandingPage() {
             </div>
 
             {/* Regional Coverage */}
-            <div className="md:col-span-2 group rounded-3xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-transparent p-8 hover:border-white/[0.12] transition-all">
+            <div className="md:col-span-2 group rounded-3xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-transparent p-6 sm:p-8 hover:border-white/[0.12] transition-all">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-500/10 mb-6">
                 <svg className="h-6 w-6 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -239,7 +239,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-24 px-6 relative">
+      <section id="how-it-works" className="py-16 sm:py-24 px-4 sm:px-6 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-blue-500/[0.03] to-transparent pointer-events-none" />
         <div className="relative mx-auto max-w-5xl">
           <div className="text-center mb-16">
@@ -289,7 +289,7 @@ export default function LandingPage() {
       </section>
 
       {/* About / Why KFB */}
-      <section id="about" className="py-24 px-6">
+      <section id="about" className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
             <div>
@@ -342,7 +342,7 @@ export default function LandingPage() {
       </section>
 
       {/* Industries */}
-      <section className="py-24 px-6 relative">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/[0.02] to-transparent pointer-events-none" />
         <div className="relative mx-auto max-w-5xl text-center">
           <p className="text-[12px] font-semibold text-blue-400 uppercase tracking-widest mb-3">Industries We Serve</p>
@@ -376,9 +376,9 @@ export default function LandingPage() {
       </section>
 
       {/* Academy */}
-      <section id="academy" className="py-24 px-6">
+      <section id="academy" className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="mx-auto max-w-5xl">
-          <div className="rounded-3xl border border-white/[0.06] bg-gradient-to-br from-blue-500/[0.08] via-indigo-500/[0.04] to-transparent p-8 sm:p-12 relative overflow-hidden">
+          <div className="rounded-3xl border border-white/[0.06] bg-gradient-to-br from-blue-500/[0.08] via-indigo-500/[0.04] to-transparent p-6 sm:p-8 md:p-12 relative overflow-hidden">
             {/* Glow */}
             <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500 rounded-full blur-[120px] opacity-10 pointer-events-none" />
 
@@ -453,7 +453,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA / Contact */}
-      <section id="contact" className="py-24 px-6 relative">
+      <section id="contact" className="py-16 sm:py-24 px-4 sm:px-6 relative">
         <div className="absolute inset-0 bg-gradient-to-t from-blue-500/[0.05] to-transparent pointer-events-none" />
         <div className="relative mx-auto max-w-3xl text-center">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
@@ -508,7 +508,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/[0.06] py-12 px-6">
+      <footer className="border-t border-white/[0.06] py-8 sm:py-12 px-4 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
