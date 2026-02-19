@@ -17,25 +17,25 @@ const styles = StyleSheet.create({
   page: {
     fontFamily: "Inter",
     fontSize: 9,
-    padding: 40,
+    padding: 35,
     color: "#1a1a1a",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 30,
+    marginBottom: 14,
     borderBottom: "2px solid #1a56db",
-    paddingBottom: 15,
+    paddingBottom: 10,
   },
   headerLeft: {
     flexDirection: "column",
-    gap: 2,
+    gap: 1,
   },
   companyName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 700,
     color: "#1a56db",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   headerText: {
     fontSize: 8,
@@ -50,10 +50,10 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   invoiceTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 700,
     color: "#1a1a1a",
-    marginBottom: 6,
+    marginBottom: 4,
   },
   invoiceMeta: {
     fontSize: 9,
@@ -62,29 +62,29 @@ const styles = StyleSheet.create({
   },
   twoColumn: {
     flexDirection: "row",
-    gap: 20,
-    marginBottom: 20,
+    gap: 16,
+    marginBottom: 10,
   },
   column: {
     flex: 1,
   },
   sectionTitle: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 700,
     color: "#1a56db",
-    marginBottom: 8,
+    marginBottom: 4,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
   },
   sectionBox: {
     backgroundColor: "#f8fafc",
     borderRadius: 4,
-    padding: 10,
-    marginBottom: 15,
+    padding: 8,
+    marginBottom: 8,
   },
   row: {
     flexDirection: "row",
-    marginBottom: 3,
+    marginBottom: 2,
   },
   label: {
     width: 100,
@@ -109,14 +109,14 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   chargesTable: {
-    marginTop: 10,
+    marginTop: 4,
     borderTop: "1px solid #e5e7eb",
   },
   chargeRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     borderBottom: "1px solid #f0f0f0",
   },
   chargeLabel: {
@@ -131,11 +131,11 @@ const styles = StyleSheet.create({
   totalRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
     backgroundColor: "#1a56db",
     borderRadius: 4,
-    marginTop: 4,
+    marginTop: 3,
   },
   totalLabel: {
     fontSize: 11,
@@ -167,9 +167,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   logoImage: {
-    width: 120,
-    height: 60,
-    marginBottom: 6,
+    width: 100,
+    height: 45,
+    marginBottom: 4,
     objectFit: "contain" as const,
   },
 });
