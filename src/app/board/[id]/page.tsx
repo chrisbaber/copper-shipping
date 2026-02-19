@@ -6,19 +6,7 @@ import { InvoicePreview } from "@/components/InvoicePreview";
 import { InvoiceDocument } from "@/components/InvoiceDocument";
 import type { InvoiceData } from "@/lib/types";
 import { pdf } from "@react-pdf/renderer";
-
-const DEFAULT_BROKER = {
-  companyName: "Kingdom Family Brokerage, Inc.",
-  address: "7533 Kingsmill Terrace",
-  city: "Fort Worth",
-  state: "TX",
-  zip: "76112",
-  phone: "(682) 231-3575",
-  email: "Hlrolfe@dfwtrucking.com",
-  ein: "29-58805",
-  mcNumber: "1750411",
-  usDot: "4444213",
-};
+import { getDefaultSettings, type BrokerSettings } from "@/lib/broker-defaults";
 
 /** Convert YYYY-MM-DD to MM-DD-YYYY for display */
 function toDisplayDate(dateStr: string): string {
@@ -28,7 +16,7 @@ function toDisplayDate(dateStr: string): string {
   return dateStr;
 }
 
-function buildInvoiceFromDb(load: Record<string, string | number | null>, invoice: Record<string, string | number | null>, documents: Record<string, unknown>[]): InvoiceData {
+function buildInvoiceFromDb(load: Record<string, string | number | null>, invoice: Record<string, string | number | null>, documents: Record<string, unknown>[], brokerSettings?: BrokerSettings | null): InvoiceData {
   // Check if we stored full invoice data in the document's extracted_data
   const bolDoc = documents?.find((d: Record<string, unknown>) => d.type === "bol");
   const extracted = bolDoc?.extracted_data as Record<string, unknown> | null;
@@ -39,7 +27,7 @@ function buildInvoiceFromDb(load: Record<string, string | number | null>, invoic
   return {
     invoiceNumber: (invoice?.invoice_number as string) || (load.load_number as string) || "",
     invoiceDate: today,
-    broker: { ...DEFAULT_BROKER },
+    broker: brokerSettings ? { ...brokerSettings } : { ...getDefaultSettings() },
     shipment: {
       brokerLoadNumber: (load.load_number as string) || "",
       motorCarrier: (load.carrier_name as string) || "",
@@ -88,14 +76,18 @@ export default function ReviewPage({ params }: { params: Promise<{ id: string }>
   useEffect(() => {
     async function loadData() {
       try {
-        const res = await fetch(`/api/invoices/${id}`);
-        if (!res.ok) {
+        const [invoiceRes, settingsRes] = await Promise.all([
+          fetch(`/api/invoices/${id}`),
+          fetch("/api/settings"),
+        ]);
+        if (!invoiceRes.ok) {
           setError("Load not found");
           setLoading(false);
           return;
         }
-        const { data } = await res.json();
-        const invoiceFromDb = buildInvoiceFromDb(data.load, data.invoice, data.documents || []);
+        const { data } = await invoiceRes.json();
+        const settingsData = settingsRes.ok ? (await settingsRes.json()).data as BrokerSettings : null;
+        const invoiceFromDb = buildInvoiceFromDb(data.load, data.invoice, data.documents || [], settingsData);
         setInvoiceData(invoiceFromDb);
       } catch {
         setError("Failed to load invoice data");

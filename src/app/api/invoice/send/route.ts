@@ -1,7 +1,38 @@
 import { type NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { createClient } from "@supabase/supabase-js";
 
 export const maxDuration = 15;
+
+async function fetchSettings() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY;
+  if (!url || !key) return null;
+
+  try {
+    const supabase = createClient(url, key, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data } = await supabase
+      .from("broker_settings")
+      .select("*")
+      .limit(1)
+      .single();
+
+    if (!data) return null;
+
+    return {
+      bankName: (data.bank_name as string) || "Bank of America",
+      bankAccount: (data.bank_account as string) || "488135011117",
+      bankRouting: (data.bank_routing as string) || "111 000 025",
+      submittedBy: (data.submitted_by as string) || "Henry L Wolfe",
+      contactPhone: (data.contact_phone as string) || "(682) 231-3575",
+      contactEmail: (data.contact_email as string) || "Hlrolfe@dfwtrucking.com",
+    };
+  } catch {
+    return null;
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,6 +61,15 @@ export async function POST(req: NextRequest) {
     if (!pdfFile || !to) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+
+    // Fetch dynamic settings from DB
+    const settings = await fetchSettings();
+    const bankName = settings?.bankName || "Bank of America";
+    const bankAccount = settings?.bankAccount || "488135011117";
+    const bankRouting = settings?.bankRouting || "111 000 025";
+    const submittedBy = settings?.submittedBy || "Henry L Wolfe";
+    const contactPhone = settings?.contactPhone || "(682) 231-3575";
+    const contactEmail = settings?.contactEmail || "Hlrolfe@dfwtrucking.com";
 
     const pdfBytes = await pdfFile.arrayBuffer();
     const pdfBuffer = Buffer.from(pdfBytes);
@@ -99,9 +139,9 @@ export async function POST(req: NextRequest) {
           <div style="background: #f8fafc; border-radius: 6px; padding: 16px; margin: 20px 0;">
             <p style="font-weight: 700; font-size: 13px; margin: 0 0 8px 0; color: #1a56db;">Payment Instructions</p>
             <p style="font-size: 13px; margin: 0 0 4px 0;"><strong>${brokerName}</strong></p>
-            <p style="font-size: 13px; margin: 0 0 4px 0;">Bank of America</p>
-            <p style="font-size: 13px; margin: 0 0 2px 0;">Account #: <strong>488135011117</strong></p>
-            <p style="font-size: 13px; margin: 0 0 8px 0;">Routing #: <strong>111 000 025</strong></p>
+            <p style="font-size: 13px; margin: 0 0 4px 0;">${bankName}</p>
+            <p style="font-size: 13px; margin: 0 0 2px 0;">Account #: <strong>${bankAccount}</strong></p>
+            <p style="font-size: 13px; margin: 0 0 8px 0;">Routing #: <strong>${bankRouting}</strong></p>
             <p style="font-size: 12px; color: #666; margin: 0;">Payment Terms: Due upon receipt</p>
           </div>
 
@@ -109,14 +149,14 @@ export async function POST(req: NextRequest) {
 
           <p style="font-size: 13px;">
             If you have any questions about this invoice, please contact us at
-            <strong>(682) 231-3575</strong> or <strong>Hlrolfe@dfwtrucking.com</strong>.
+            <strong>${contactPhone}</strong> or <strong>${contactEmail}</strong>.
           </p>
 
           <p style="color: #999; font-size: 12px; margin-top: 20px;">
             Thank you for selecting ${brokerName} for your logistical services.
           </p>
           <p style="color: #999; font-size: 11px;">
-            Submitted by: Henry L Wolfe
+            Submitted by: ${submittedBy}
           </p>
         </div>
       `,

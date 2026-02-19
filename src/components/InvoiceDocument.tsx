@@ -352,15 +352,15 @@ export function InvoiceDocument({ data, logoUrl }: InvoiceDocumentProps) {
                 {data.broker.companyName}
               </Text>
               <Text style={{ fontSize: 8, color: "#1a1a1a", marginBottom: 6 }}>
-                Bank of America
+                {data.broker.bankName || "Bank of America"}
               </Text>
               <View style={{ marginBottom: 2 }}>
                 <Text style={{ fontSize: 8, color: "#555" }}>Account #</Text>
-                <Text style={{ fontSize: 10, fontWeight: 600, color: "#1a1a1a" }}>488135011117</Text>
+                <Text style={{ fontSize: 10, fontWeight: 600, color: "#1a1a1a" }}>{data.broker.bankAccount || "488135011117"}</Text>
               </View>
               <View style={{ marginBottom: 4 }}>
                 <Text style={{ fontSize: 8, color: "#555" }}>Routing #</Text>
-                <Text style={{ fontSize: 10, fontWeight: 600, color: "#1a1a1a" }}>111 000 025</Text>
+                <Text style={{ fontSize: 10, fontWeight: 600, color: "#1a1a1a" }}>{data.broker.bankRouting || "111 000 025"}</Text>
               </View>
               <Text style={{ fontSize: 7, color: "#666", marginTop: 2 }}>
                 Payment Terms: Due upon receipt
@@ -374,7 +374,7 @@ export function InvoiceDocument({ data, logoUrl }: InvoiceDocumentProps) {
           <Text style={styles.footerText}>
             Thank you for selecting {data.broker.companyName} for your logistical services.
           </Text>
-          <Text style={styles.footerSubmitted}>Submitted by: Henry L Wolfe</Text>
+          <Text style={styles.footerSubmitted}>Submitted by: {data.broker.submittedBy || "Henry L Wolfe"}</Text>
         </View>
       </Page>
     </Document>

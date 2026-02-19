@@ -5,19 +5,7 @@ import { useRouter } from "next/navigation";
 import { InvoiceDocument } from "@/components/InvoiceDocument";
 import type { InvoiceData } from "@/lib/types";
 import { pdf } from "@react-pdf/renderer";
-
-const DEFAULT_BROKER = {
-  companyName: "Kingdom Family Brokerage, Inc.",
-  address: "7533 Kingsmill Terrace",
-  city: "Fort Worth",
-  state: "TX",
-  zip: "76112",
-  phone: "(682) 231-3575",
-  email: "Hlrolfe@dfwtrucking.com",
-  ein: "29-58805",
-  mcNumber: "1750411",
-  usDot: "4444213",
-};
+import { getDefaultSettings, type BrokerSettings } from "@/lib/broker-defaults";
 
 function toDisplayDate(dateStr: string): string {
   if (!dateStr) return "";
@@ -44,7 +32,10 @@ export default function SendPage({ params }: { params: Promise<{ id: string }> }
   useEffect(() => {
     async function loadAndGenerate() {
       try {
-        const res = await fetch(`/api/invoices/${id}`);
+        const [res, settingsRes] = await Promise.all([
+          fetch(`/api/invoices/${id}`),
+          fetch("/api/settings"),
+        ]);
         if (!res.ok) {
           setError("Load not found");
           setLoading(false);
@@ -52,6 +43,7 @@ export default function SendPage({ params }: { params: Promise<{ id: string }> }
         }
         const { data } = await res.json();
         const { load, invoice, documents } = data;
+        const brokerSettings = settingsRes.ok ? (await settingsRes.json()).data as BrokerSettings : null;
 
         const bolDoc = documents?.find((d: Record<string, unknown>) => d.type === "bol");
         const extracted = bolDoc?.extracted_data as Record<string, unknown> | null;
@@ -62,7 +54,7 @@ export default function SendPage({ params }: { params: Promise<{ id: string }> }
         const invData: InvoiceData = {
           invoiceNumber: (invoice?.invoice_number as string) || (load.load_number as string) || "",
           invoiceDate: today,
-          broker: { ...DEFAULT_BROKER },
+          broker: brokerSettings ? { ...brokerSettings } : { ...getDefaultSettings() },
           shipment: {
             brokerLoadNumber: (load.load_number as string) || "",
             motorCarrier: (load.carrier_name as string) || "",

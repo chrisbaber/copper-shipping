@@ -67,6 +67,12 @@ export interface InvoiceData {
     ein: string;
     mcNumber: string;
     usDot: string;
+    bankName?: string;
+    bankAccount?: string;
+    bankRouting?: string;
+    submittedBy?: string;
+    contactPhone?: string;
+    contactEmail?: string;
   };
 
   /** Shipment data */

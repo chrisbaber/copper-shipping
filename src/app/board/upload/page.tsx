@@ -1,22 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BOLUploader } from "@/components/BOLUploader";
 import type { BolExtractedData } from "@/lib/types";
-
-const DEFAULT_BROKER = {
-  companyName: "Kingdom Family Brokerage, Inc.",
-  address: "7533 Kingsmill Terrace",
-  city: "Fort Worth",
-  state: "TX",
-  zip: "76112",
-  phone: "(682) 231-3575",
-  email: "Hlrolfe@dfwtrucking.com",
-  ein: "29-58805",
-  mcNumber: "1750411",
-  usDot: "4444213",
-};
+import { getDefaultSettings, type BrokerSettings } from "@/lib/broker-defaults";
 
 /** Convert YYYY-MM-DD to MM-DD-YYYY for display */
 function toDisplayDate(dateStr: string): string {
@@ -30,6 +18,13 @@ export default function UploadPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [brokerSettings, setBrokerSettings] = useState<BrokerSettings>(getDefaultSettings());
+
+  useEffect(() => {
+    fetch("/api/settings").then(r => r.json()).then(({ data }) => {
+      if (data) setBrokerSettings(data);
+    }).catch(() => {});
+  }, []);
 
   const handleExtracted = async (data: Record<string, unknown>) => {
     const bol = data as unknown as BolExtractedData;
@@ -67,7 +62,7 @@ export default function UploadPage() {
           fullInvoiceData: JSON.stringify({
             invoiceNumber,
             invoiceDate: today,
-            broker: { ...DEFAULT_BROKER },
+            broker: { ...brokerSettings },
             shipment: {
               brokerLoadNumber: bol.brokerLoadNumber,
               motorCarrier: bol.carrierName,

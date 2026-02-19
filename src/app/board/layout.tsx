@@ -41,7 +41,7 @@ export default function BoardLayout({ children }: { children: React.ReactNode })
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-4 pb-24 pt-6">{children}</main>
+      <main className={`mx-auto ${pathname?.startsWith("/board/settings") ? "max-w-5xl" : "max-w-3xl"} px-4 pb-24 pt-6`}>{children}</main>
     </div>
   );
 }
