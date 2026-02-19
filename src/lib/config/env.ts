@@ -27,7 +27,7 @@ export const aiConfig = {
   },
   /** Model identifier — OpenRouter format */
   get model() {
-    return optionalEnv("ANTHROPIC_MODEL", "qwen/qwen3-vl-235b-a22b-thinking") as string;
+    return optionalEnv("ANTHROPIC_MODEL", "qwen/qwen3-vl-30b-a3b-thinking") as string;
   },
   /** Which provider to use */
   get provider(): "openrouter" | "anthropic" {
