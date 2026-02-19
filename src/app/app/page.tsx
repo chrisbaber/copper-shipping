@@ -1,14 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { BOLUploader } from "@/components/BOLUploader";
 import { InvoicePreview } from "@/components/InvoicePreview";
+import { InvoiceDocument } from "@/components/InvoiceDocument";
 import type { BolExtractedData, InvoiceData } from "@/lib/types";
 import { pdf } from "@react-pdf/renderer";
-
-const InvoiceDocument = lazy(() =>
-  import("@/components/InvoiceDocument").then((mod) => ({ default: mod.InvoiceDocument }))
-);
 
 const DEFAULT_BROKER = {
   companyName: "Kingdom Family Brokerage, Inc.",
@@ -403,13 +400,6 @@ export default function Home() {
 
         {/* Step 2: Preview / Edit */}
         {step === "preview" && invoiceData && (
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center py-16">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
-              </div>
-            }
-          >
             <div className="space-y-5">
               {/* Rate input card */}
               <div className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 p-5 text-white shadow-lg shadow-blue-600/20">
@@ -461,7 +451,6 @@ export default function Home() {
                 )}
               </button>
             </div>
-          </Suspense>
         )}
 
         {/* Step 3: Done */}
