@@ -63,6 +63,17 @@ function bolToInvoice(bol: BolExtractedData): InvoiceData {
   };
 }
 
+interface InvoiceRecord {
+  id: string;
+  invoiceNumber: string;
+  shipperName: string;
+  receiverName: string;
+  amount: number;
+  date: string;
+  emailSentTo: string | null;
+  pdfUrl: string;
+}
+
 type Step = "upload" | "preview" | "done";
 
 export default function Home() {
@@ -75,6 +86,7 @@ export default function Home() {
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [emailTo, setEmailTo] = useState("");
+  const [history, setHistory] = useState<InvoiceRecord[]>([]);
 
   const handleExtracted = (data: Record<string, unknown>) => {
     const bolData = data as unknown as BolExtractedData;
@@ -139,13 +151,38 @@ export default function Home() {
     }
   };
 
+  const saveToHistory = () => {
+    if (!invoiceData || !pdfUrl) return;
+    const record: InvoiceRecord = {
+      id: crypto.randomUUID(),
+      invoiceNumber: invoiceData.invoiceNumber,
+      shipperName: invoiceData.routing.shipperName,
+      receiverName: invoiceData.routing.receiverName,
+      amount: invoiceData.charges.totalAmountDue,
+      date: invoiceData.invoiceDate,
+      emailSentTo: emailSent ? emailTo : null,
+      pdfUrl,
+    };
+    setHistory((prev) => [record, ...prev]);
+  };
+
   const handleReset = () => {
+    // Save current invoice to history before resetting
+    if (step === "done" && invoiceData && pdfUrl) {
+      saveToHistory();
+    }
     setStep("upload");
     setInvoiceData(null);
     setError(null);
     setPdfUrl(null);
+    setPdfBlob(null);
     setIsGenerating(false);
+    setEmailSent(false);
+    setEmailTo("");
   };
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount);
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -153,7 +190,7 @@ export default function Home() {
       <header className="border-b border-zinc-200 bg-white">
         <div className="mx-auto max-w-3xl px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-zinc-900">Copper Shipping</h1>
+            <h1 className="text-lg font-bold text-zinc-900">Copper Asset Management</h1>
             <p className="text-xs text-zinc-500">Kingdom Family Brokerage</p>
           </div>
           {step !== "upload" && (
@@ -179,7 +216,7 @@ export default function Home() {
           </span>
           <span className="text-zinc-300">&rarr;</span>
           <span className={`font-medium ${step === "done" ? "text-blue-600" : "text-zinc-400"}`}>
-            3. Download PDF
+            3. Send Invoice
           </span>
         </div>
       </div>
@@ -289,6 +326,9 @@ export default function Home() {
             {/* Email Send */}
             <div className="rounded-xl border border-zinc-200 bg-white p-4 space-y-3">
               <h3 className="text-sm font-semibold text-zinc-800">Email Invoice to Shipper</h3>
+              <p className="text-xs text-zinc-500">
+                Sent from invoices@copperasset.com
+              </p>
               {emailSent ? (
                 <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 rounded-lg p-3">
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -314,6 +354,61 @@ export default function Home() {
                   </button>
                 </div>
               )}
+            </div>
+
+            {/* Process Another BOL */}
+            <button
+              onClick={handleReset}
+              className="w-full rounded-xl border-2 border-dashed border-zinc-300 py-4 text-sm font-medium text-zinc-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+            >
+              + Process Another BOL
+            </button>
+          </div>
+        )}
+
+        {/* Invoice History */}
+        {history.length > 0 && (
+          <div className="mt-10">
+            <h3 className="text-sm font-semibold text-zinc-700 mb-3">
+              Invoice History ({history.length})
+            </h3>
+            <div className="space-y-2">
+              {history.map((record) => (
+                <div
+                  key={record.id}
+                  className="flex items-center justify-between rounded-lg border border-zinc-200 bg-white px-4 py-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-zinc-900">
+                        #{record.invoiceNumber}
+                      </span>
+                      <span className="text-xs text-zinc-400">{record.date}</span>
+                      {record.emailSentTo && (
+                        <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">
+                          Emailed
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-zinc-500 truncate">
+                      {record.shipperName} &rarr; {record.receiverName}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 ml-3">
+                    <span className="text-sm font-semibold text-zinc-900">
+                      {formatCurrency(record.amount)}
+                    </span>
+                    <a
+                      href={record.pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-medium text-blue-600 hover:text-blue-800"
+                    >
+                      View PDF
+                    </a>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

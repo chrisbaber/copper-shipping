@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: `${brokerName} <invoices@copper-shipping.com>`,
+        from: `${brokerName} <invoices@copperasset.com>`,
         to: [to],
         subject: `Invoice ${invoiceNumber} — ${brokerName}`,
         html: `
