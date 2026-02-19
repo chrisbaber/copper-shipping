@@ -90,6 +90,21 @@ export function InvoicePreview({ data, onChange }: InvoicePreviewProps) {
           onChange={(v) => update("shipment.motorCarrier", v)}
         />
         <Field
+          label="Driver Name"
+          value={data.shipment.driverName}
+          onChange={(v) => update("shipment.driverName", v)}
+        />
+        <Field
+          label="Truck Tag #"
+          value={data.shipment.truckTag}
+          onChange={(v) => update("shipment.truckTag", v)}
+        />
+        <Field
+          label="Truck Number"
+          value={data.shipment.truckNumber}
+          onChange={(v) => update("shipment.truckNumber", v)}
+        />
+        <Field
           label="MC Authority"
           value={data.shipment.mcAuthority}
           onChange={(v) => update("shipment.mcAuthority", v)}

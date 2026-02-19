@@ -41,6 +41,11 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: "#666",
   },
+  headerCredentials: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 4,
+  },
   headerRight: {
     alignItems: "flex-end",
   },
@@ -91,6 +96,17 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 9,
     color: "#1a1a1a",
+  },
+  billToName: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#1a1a1a",
+    marginBottom: 6,
+  },
+  billToLine: {
+    fontSize: 9,
+    color: "#1a1a1a",
+    marginBottom: 2,
   },
   chargesTable: {
     marginTop: 10,
@@ -166,17 +182,6 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-function formatDate(dateStr: string): string {
-  if (!dateStr) return "";
-  try {
-    const date = new Date(dateStr);
-    if (Number.isNaN(date.getTime())) return dateStr;
-    return date.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
-  } catch {
-    return dateStr;
-  }
-}
-
 interface InvoiceDocumentProps {
   data: InvoiceData;
   logoUrl?: string;
@@ -197,12 +202,16 @@ export function InvoiceDocument({ data, logoUrl }: InvoiceDocumentProps) {
             </Text>
             <Text style={styles.headerText}>{data.broker.phone}</Text>
             <Text style={styles.headerText}>{data.broker.email}</Text>
-            <Text style={styles.headerText}>MC# {data.broker.mcNumber}</Text>
+            <View style={styles.headerCredentials}>
+              <Text style={{ ...styles.headerText, fontWeight: 600 }}>EIN {data.broker.ein}</Text>
+              <Text style={{ ...styles.headerText, fontWeight: 600 }}>MC# {data.broker.mcNumber}</Text>
+              <Text style={{ ...styles.headerText, fontWeight: 600 }}>US DOT# {data.broker.usDot}</Text>
+            </View>
           </View>
           <View style={styles.headerRight}>
             <Text style={styles.invoiceTitle}>INVOICE</Text>
             <Text style={styles.invoiceMeta}>Invoice # {data.invoiceNumber}</Text>
-            <Text style={styles.invoiceMeta}>Date: {formatDate(data.invoiceDate)}</Text>
+            <Text style={styles.invoiceMeta}>Date: {data.invoiceDate}</Text>
           </View>
         </View>
 
@@ -218,6 +227,18 @@ export function InvoiceDocument({ data, logoUrl }: InvoiceDocumentProps) {
               <View style={styles.row}>
                 <Text style={styles.label}>Motor Carrier:</Text>
                 <Text style={styles.value}>{data.shipment.motorCarrier}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Driver:</Text>
+                <Text style={styles.value}>{data.shipment.driverName}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Truck Tag #:</Text>
+                <Text style={styles.value}>{data.shipment.truckTag}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Truck Number:</Text>
+                <Text style={styles.value}>{data.shipment.truckNumber}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>MC Authority:</Text>
@@ -245,10 +266,10 @@ export function InvoiceDocument({ data, logoUrl }: InvoiceDocumentProps) {
           <View style={styles.column}>
             <Text style={styles.sectionTitle}>Bill To</Text>
             <View style={styles.sectionBox}>
-              <Text style={{ ...styles.value, fontWeight: 600, marginBottom: 4 }}>{data.billTo.name}</Text>
-              <Text style={styles.value}>{data.billTo.address}</Text>
-              <Text style={styles.value}>
-                {data.billTo.city}, {data.billTo.state} {data.billTo.zip}
+              <Text style={styles.billToName}>{data.billTo.name}</Text>
+              <Text style={styles.billToLine}>{data.billTo.address}</Text>
+              <Text style={styles.billToLine}>
+                {data.billTo.city}{data.billTo.city && data.billTo.state ? ", " : ""}{data.billTo.state} {data.billTo.zip}
               </Text>
             </View>
           </View>
@@ -269,7 +290,7 @@ export function InvoiceDocument({ data, logoUrl }: InvoiceDocumentProps) {
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Pickup Date:</Text>
-                <Text style={styles.value}>{formatDate(data.routing.pickupDate)}</Text>
+                <Text style={styles.value}>{data.routing.pickupDate}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>MC Load #:</Text>
@@ -287,7 +308,7 @@ export function InvoiceDocument({ data, logoUrl }: InvoiceDocumentProps) {
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Delivery Date:</Text>
-                <Text style={styles.value}>{formatDate(data.routing.deliveryDate)}</Text>
+                <Text style={styles.value}>{data.routing.deliveryDate}</Text>
               </View>
             </View>
           </View>

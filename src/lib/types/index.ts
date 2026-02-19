@@ -64,7 +64,9 @@ export interface InvoiceData {
     zip: string;
     phone: string;
     email: string;
+    ein: string;
     mcNumber: string;
+    usDot: string;
   };
 
   /** Shipment data */
@@ -76,6 +78,9 @@ export interface InvoiceData {
     equipment: string;
     commodity: string;
     weight: string;
+    driverName: string;
+    truckTag: string;
+    truckNumber: string;
   };
 
   /** Bill-to customer */

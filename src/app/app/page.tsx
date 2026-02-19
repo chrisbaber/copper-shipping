@@ -18,11 +18,22 @@ const DEFAULT_BROKER = {
   zip: "76112",
   phone: "(682) 231-3575",
   email: "Hlrolfe@dfwtrucking.com",
+  ein: "29-58805",
   mcNumber: "1750411",
+  usDot: "4444213",
 };
 
+/** Convert YYYY-MM-DD to MM-DD-YYYY for display */
+function toDisplayDate(dateStr: string): string {
+  if (!dateStr) return "";
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) return `${match[2]}-${match[3]}-${match[1]}`;
+  return dateStr;
+}
+
 function bolToInvoice(bol: BolExtractedData): InvoiceData {
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const today = `${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}-${now.getFullYear()}`;
   return {
     invoiceNumber: bol.brokerLoadNumber ? `F${bol.brokerLoadNumber.replace(/\D/g, "")}` : "",
     invoiceDate: today,
@@ -35,6 +46,9 @@ function bolToInvoice(bol: BolExtractedData): InvoiceData {
       equipment: "",
       commodity: `${bol.commodity}${bol.quantity ? `, ${bol.quantity}` : ""}`,
       weight: bol.weight,
+      driverName: bol.driverName,
+      truckTag: bol.truckTag,
+      truckNumber: bol.truckNumber,
     },
     billTo: {
       name: bol.shipFrom.name,
@@ -46,10 +60,10 @@ function bolToInvoice(bol: BolExtractedData): InvoiceData {
     routing: {
       shipperName: bol.shipFrom.name,
       originSite: `${bol.shipFrom.address}${bol.shipFrom.city ? `, ${bol.shipFrom.city}` : ""}`,
-      pickupDate: bol.pickupDate,
+      pickupDate: toDisplayDate(bol.pickupDate),
       receiverName: bol.shipTo.name,
       deliverySite: `${bol.shipTo.address}${bol.shipTo.city ? `, ${bol.shipTo.city}` : ""}`,
-      deliveryDate: bol.deliveryDate,
+      deliveryDate: toDisplayDate(bol.deliveryDate),
       mcLoadNumber: bol.bolNumber,
     },
     charges: {
