@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { BOLUploader } from "@/components/BOLUploader";
 import { InvoicePreview } from "@/components/InvoicePreview";
 import type { BolExtractedData, InvoiceData } from "@/lib/types";
@@ -83,6 +83,7 @@ const STEPS: { key: Step; label: string; icon: string }[] = [
 export default function Home() {
   const [step, setStep] = useState<Step>("upload");
   const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
+  const [extractedBolData, setExtractedBolData] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -92,9 +93,38 @@ export default function Home() {
   const [emailTo, setEmailTo] = useState("");
   const [history, setHistory] = useState<InvoiceRecord[]>([]);
 
+  // Load invoice history from Supabase on mount
+  const loadHistory = useCallback(async () => {
+    try {
+      const res = await fetch("/api/invoices");
+      const { data } = await res.json();
+      if (data && Array.isArray(data)) {
+        setHistory(
+          data.map((inv: Record<string, string | number | null>) => ({
+            id: inv.id as string,
+            invoiceNumber: inv.invoice_number as string,
+            shipperName: inv.bill_to_name as string || "—",
+            receiverName: "—",
+            amount: Number(inv.total_amount) || 0,
+            date: (inv.created_at as string)?.split("T")[0] || "",
+            emailSentTo: inv.sent_to_email as string | null,
+            pdfUrl: "",
+          }))
+        );
+      }
+    } catch {
+      // Supabase not connected yet — use in-memory history
+    }
+  }, []);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
   const stepIndex = STEPS.findIndex((s) => s.key === step);
 
   const handleExtracted = (data: Record<string, unknown>) => {
+    setExtractedBolData(data);
     const bolData = data as unknown as BolExtractedData;
     const invoice = bolToInvoice(bolData);
     setInvoiceData(invoice);
@@ -157,7 +187,7 @@ export default function Home() {
     }
   };
 
-  const saveToHistory = () => {
+  const saveToHistory = async () => {
     if (!invoiceData || !pdfUrl) return;
     const record: InvoiceRecord = {
       id: crypto.randomUUID(),
@@ -170,6 +200,39 @@ export default function Home() {
       pdfUrl,
     };
     setHistory((prev) => [record, ...prev]);
+
+    // Persist to Supabase (fire and forget)
+    try {
+      await fetch("/api/invoices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          invoiceNumber: invoiceData.invoiceNumber,
+          shipperName: invoiceData.routing.shipperName,
+          shipperAddress: invoiceData.routing.originSite,
+          pickupAddress: invoiceData.routing.originSite,
+          pickupDate: invoiceData.routing.pickupDate || null,
+          deliveryAddress: invoiceData.routing.deliverySite,
+          deliveryDate: invoiceData.routing.deliveryDate || null,
+          commodity: invoiceData.shipment.commodity,
+          weight: invoiceData.shipment.weight,
+          carrierName: invoiceData.shipment.motorCarrier,
+          carrierMc: invoiceData.shipment.mcAuthority,
+          truckNumber: "",
+          bolNumber: invoiceData.routing.mcLoadNumber,
+          billToName: invoiceData.billTo.name,
+          billToAddress: `${invoiceData.billTo.address}, ${invoiceData.billTo.city}, ${invoiceData.billTo.state} ${invoiceData.billTo.zip}`,
+          linehaul: invoiceData.charges.linehaul,
+          fuelSurcharge: invoiceData.charges.fuelSurcharge,
+          accessorial: invoiceData.charges.accessorial,
+          totalAmount: invoiceData.charges.totalAmountDue,
+          emailSentTo: emailSent ? emailTo : null,
+          extractedData: extractedBolData,
+        }),
+      });
+    } catch {
+      // Supabase not connected — local history still works
+    }
   };
 
   const handleReset = () => {
