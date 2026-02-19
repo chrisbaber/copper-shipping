@@ -8,9 +8,51 @@ interface BOLUploaderProps {
   onError: (error: string) => void;
 }
 
+/** Compress an image to fit within maxWidth/maxHeight and target file size */
+async function compressImage(file: File, maxWidth = 2048, maxHeight = 2048, quality = 0.8): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+
+      // Scale down if needed
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Failed to create canvas context"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Failed to compress image"));
+            return;
+          }
+          resolve(blob);
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+    img.onerror = () => reject(new Error("Failed to load image for compression"));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 export function BOLUploader({ onExtracted, onError }: BOLUploaderProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [statusText, setStatusText] = useState("");
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -22,27 +64,58 @@ export function BOLUploader({ onExtracted, onError }: BOLUploaderProps) {
       reader.readAsDataURL(file);
 
       setIsProcessing(true);
+      setStatusText("Compressing image...");
       try {
+        // Compress image to avoid 413 Payload Too Large on Vercel (4.5MB limit)
+        let uploadFile: File | Blob = file;
+        if (file.size > 3 * 1024 * 1024) {
+          uploadFile = await compressImage(file);
+        }
+
+        setStatusText("Extracting data from BOL...");
+
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", uploadFile, file.name);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 55000); // 55s client timeout
 
         const response = await fetch("/api/extract", {
           method: "POST",
           body: formData,
+          signal: controller.signal,
         });
 
-        const result = await response.json();
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
-          onError(result.error || "Failed to extract data from BOL");
+          let errorMsg = `Extraction failed (${response.status})`;
+          try {
+            const result = await response.json();
+            errorMsg = result.error || errorMsg;
+          } catch {
+            // Non-JSON response (e.g. 413, 504 HTML pages)
+            if (response.status === 413) {
+              errorMsg = "Photo is too large. Please try taking the photo in lower resolution or from farther away.";
+            } else if (response.status === 504) {
+              errorMsg = "Extraction timed out. Please try again — it usually works on the second attempt.";
+            }
+          }
+          onError(errorMsg);
           return;
         }
 
+        const result = await response.json();
         onExtracted(result.data);
-      } catch {
-        onError("Failed to connect to extraction service");
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          onError("Extraction timed out. Please try again.");
+        } else {
+          onError("Failed to connect to extraction service. Check your internet connection and try again.");
+        }
       } finally {
         setIsProcessing(false);
+        setStatusText("");
       }
     },
     [onExtracted, onError]
@@ -54,9 +127,11 @@ export function BOLUploader({ onExtracted, onError }: BOLUploaderProps) {
       "image/jpeg": [".jpg", ".jpeg"],
       "image/png": [".png"],
       "image/webp": [".webp"],
+      "image/heic": [".heic"],
+      "image/heif": [".heif"],
     },
     maxFiles: 1,
-    maxSize: 10 * 1024 * 1024,
+    maxSize: 20 * 1024 * 1024,
     disabled: isProcessing,
   });
 
@@ -65,7 +140,7 @@ export function BOLUploader({ onExtracted, onError }: BOLUploaderProps) {
       <div
         {...getRootProps()}
         className={`
-          relative rounded-xl border-2 border-dashed p-10 text-center transition-all duration-200 cursor-pointer
+          relative rounded-xl border-2 border-dashed p-8 sm:p-10 text-center transition-all duration-200 cursor-pointer
           ${isDragActive ? "border-blue-500 bg-blue-50/80" : "border-slate-300 bg-white hover:border-blue-400 hover:bg-blue-50/30"}
           ${isProcessing ? "pointer-events-none opacity-60" : ""}
         `}
@@ -78,7 +153,7 @@ export function BOLUploader({ onExtracted, onError }: BOLUploaderProps) {
               <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-800">Extracting data from BOL...</p>
+              <p className="text-sm font-semibold text-slate-800">{statusText || "Processing..."}</p>
               <p className="text-xs text-slate-500 mt-1">AI is reading your document</p>
             </div>
           </div>
@@ -108,7 +183,7 @@ export function BOLUploader({ onExtracted, onError }: BOLUploaderProps) {
                 {isDragActive ? "Drop your BOL photo here" : "Upload Bill of Lading"}
               </p>
               <p className="mt-1.5 text-sm text-slate-500">Drag and drop or tap to take a photo</p>
-              <p className="text-xs text-slate-400 mt-1">JPEG, PNG, or WebP up to 10MB</p>
+              <p className="text-xs text-slate-400 mt-1">JPEG, PNG, or WebP up to 20MB</p>
             </div>
           </div>
         )}

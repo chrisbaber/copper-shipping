@@ -1,26 +1,39 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { ParticleTunnelLoader } from "@/components/three/ParticleTunnelLoader";
 
+const NAV_LINKS = [
+  { href: "#services", label: "Services" },
+  { href: "#how-it-works", label: "How It Works" },
+  { href: "#about", label: "About" },
+  { href: "#academy", label: "Academy" },
+  { href: "#contact", label: "Contact" },
+];
+
 export default function LandingPage() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06] bg-[#0a0a0f]/80 backdrop-blur-xl">
-        <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/kfb-logo.png" alt="KFB" className="h-9 w-auto" />
+            <img src="/kfb-logo.png" alt="KFB" className="h-8 sm:h-9 w-auto" />
             <span className="text-sm font-bold tracking-tight text-white/90 hidden sm:block">
               Kingdom Family Brokerage
             </span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-[13px] font-medium text-white/50">
-            <a href="#services" className="hover:text-white transition-colors">Services</a>
-            <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
-            <a href="#about" className="hover:text-white transition-colors">About</a>
-            <a href="#academy" className="hover:text-white transition-colors">Academy</a>
-            <a href="#contact" className="hover:text-white transition-colors">Contact</a>
+            {NAV_LINKS.map((link) => (
+              <a key={link.href} href={link.href} className="hover:text-white transition-colors">
+                {link.label}
+              </a>
+            ))}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/login"
               className="text-[13px] font-medium text-white/60 hover:text-white transition-colors hidden sm:block"
@@ -29,12 +42,57 @@ export default function LandingPage() {
             </Link>
             <a
               href="#contact"
-              className="rounded-full bg-white px-5 py-2 text-[13px] font-semibold text-[#0a0a0f] hover:bg-white/90 transition-colors"
+              className="rounded-full bg-white px-4 sm:px-5 py-2 text-[12px] sm:text-[13px] font-semibold text-[#0a0a0f] hover:bg-white/90 transition-colors"
             >
               Get a Quote
             </a>
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="md:hidden flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 hover:bg-white/5 transition-colors cursor-pointer"
+              aria-label="Toggle menu"
+            >
+              {menuOpen ? (
+                <svg className="h-5 w-5 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile menu dropdown */}
+        {menuOpen && (
+          <div className="md:hidden border-t border-white/[0.06] bg-[#0a0a0f]/95 backdrop-blur-xl">
+            <div className="mx-auto max-w-6xl px-4 py-4 flex flex-col gap-1">
+              {NAV_LINKS.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-lg px-4 py-3 text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.04] transition-colors"
+                >
+                  {link.label}
+                </a>
+              ))}
+              <div className="border-t border-white/[0.06] mt-2 pt-3">
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-blue-400 hover:bg-white/[0.04] transition-colors"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                  </svg>
+                  Portal Login
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero */}
