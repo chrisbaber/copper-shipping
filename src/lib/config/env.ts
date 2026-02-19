@@ -25,9 +25,9 @@ export const aiConfig = {
   get anthropicApiKey() {
     return optionalEnv("ANTHROPIC_API_KEY");
   },
-  /** Model identifier — OpenRouter format, e.g. "google/gemini-2.0-flash-exp:free" */
+  /** Model identifier — OpenRouter format */
   get model() {
-    return optionalEnv("ANTHROPIC_MODEL", "google/gemini-2.0-flash-exp:free") as string;
+    return optionalEnv("ANTHROPIC_MODEL", "qwen/qwen3-vl-235b-a22b-thinking") as string;
   },
   /** Which provider to use */
   get provider(): "openrouter" | "anthropic" {
