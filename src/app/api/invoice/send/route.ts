@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     const pdfBytes = await pdfFile.arrayBuffer();
     const pdfBuffer = Buffer.from(pdfBytes);
 
-    const port = Number(process.env.SMTP_PORT) || 465;
+    const port = parseInt(process.env.SMTP_PORT || "465", 10);
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port,
@@ -43,11 +43,6 @@ export async function POST(req: NextRequest) {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
-      tls: {
-        rejectUnauthorized: false,
-      },
-      connectionTimeout: 10000,
-      socketTimeout: 15000,
     });
 
     const amountFormatted = Number.parseFloat(amount).toFixed(2);

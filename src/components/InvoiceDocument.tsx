@@ -314,56 +314,59 @@ export function InvoiceDocument({ data, logoUrl }: InvoiceDocumentProps) {
           </View>
         </View>
 
-        {/* Charges */}
-        <Text style={styles.sectionTitle}>Charges</Text>
-        <View style={styles.chargesTable}>
-          <View style={styles.chargeRow}>
-            <Text style={styles.chargeLabel}>Linehaul</Text>
-            <Text style={styles.chargeValue}>{formatCurrency(data.charges.linehaul)}</Text>
+        {/* Charges + Payment Instructions — side by side */}
+        <View style={styles.twoColumn}>
+          <View style={styles.column}>
+            <Text style={styles.sectionTitle}>Charges</Text>
+            <View style={styles.chargesTable}>
+              <View style={styles.chargeRow}>
+                <Text style={styles.chargeLabel}>Linehaul</Text>
+                <Text style={styles.chargeValue}>{formatCurrency(data.charges.linehaul)}</Text>
+              </View>
+              <View style={styles.chargeRow}>
+                <Text style={styles.chargeLabel}>Fuel Surcharge</Text>
+                <Text style={styles.chargeValue}>
+                  {data.charges.fuelSurcharge > 0 ? formatCurrency(data.charges.fuelSurcharge) : "N/A"}
+                </Text>
+              </View>
+              <View style={styles.chargeRow}>
+                <Text style={styles.chargeLabel}>Accessorial</Text>
+                <Text style={styles.chargeValue}>
+                  {data.charges.accessorial > 0 ? formatCurrency(data.charges.accessorial) : "$0.00"}
+                </Text>
+              </View>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>TOTAL DUE</Text>
+                <Text style={styles.totalValue}>{formatCurrency(data.charges.totalAmountDue)}</Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.chargeRow}>
-            <Text style={styles.chargeLabel}>Fuel Surcharge</Text>
-            <Text style={styles.chargeValue}>
-              {data.charges.fuelSurcharge > 0 ? formatCurrency(data.charges.fuelSurcharge) : "N/A"}
-            </Text>
-          </View>
-          <View style={styles.chargeRow}>
-            <Text style={styles.chargeLabel}>Accessorial</Text>
-            <Text style={styles.chargeValue}>
-              {data.charges.accessorial > 0 ? formatCurrency(data.charges.accessorial) : "$0.00"}
-            </Text>
-          </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>TOTAL AMOUNT DUE</Text>
-            <Text style={styles.totalValue}>{formatCurrency(data.charges.totalAmountDue)}</Text>
-          </View>
-        </View>
 
-        {/* Payment Instructions */}
-        <Text style={styles.sectionTitle}>Payment Instructions</Text>
-        <View style={styles.sectionBox}>
-          <Text style={{ fontSize: 9, color: "#1a1a1a", marginBottom: 4 }}>
-            Please remit payment to:
-          </Text>
-          <Text style={{ fontSize: 10, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 }}>
-            {data.broker.companyName}
-          </Text>
-          <Text style={{ fontSize: 9, color: "#1a1a1a", marginBottom: 1 }}>
-            Bank of America
-          </Text>
-          <View style={{ flexDirection: "row", gap: 20, marginTop: 4 }}>
-            <View style={styles.row}>
-              <Text style={{ ...styles.label, width: 70 }}>Account #:</Text>
-              <Text style={{ ...styles.value, fontWeight: 600 }}>488135011117</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={{ ...styles.label, width: 70 }}>Routing #:</Text>
-              <Text style={{ ...styles.value, fontWeight: 600 }}>111 000 025</Text>
+          <View style={styles.column}>
+            <Text style={styles.sectionTitle}>Payment Instructions</Text>
+            <View style={styles.sectionBox}>
+              <Text style={{ fontSize: 8, color: "#555", marginBottom: 3 }}>
+                Please remit payment to:
+              </Text>
+              <Text style={{ fontSize: 9, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 }}>
+                {data.broker.companyName}
+              </Text>
+              <Text style={{ fontSize: 8, color: "#1a1a1a", marginBottom: 6 }}>
+                Bank of America
+              </Text>
+              <View style={{ marginBottom: 2 }}>
+                <Text style={{ fontSize: 8, color: "#555" }}>Account #</Text>
+                <Text style={{ fontSize: 10, fontWeight: 600, color: "#1a1a1a" }}>488135011117</Text>
+              </View>
+              <View style={{ marginBottom: 4 }}>
+                <Text style={{ fontSize: 8, color: "#555" }}>Routing #</Text>
+                <Text style={{ fontSize: 10, fontWeight: 600, color: "#1a1a1a" }}>111 000 025</Text>
+              </View>
+              <Text style={{ fontSize: 7, color: "#666", marginTop: 2 }}>
+                Payment Terms: Due upon receipt
+              </Text>
             </View>
           </View>
-          <Text style={{ fontSize: 8, color: "#666", marginTop: 6 }}>
-            Payment Terms: Due upon receipt
-          </Text>
         </View>
 
         {/* Footer */}
