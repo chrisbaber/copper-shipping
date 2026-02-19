@@ -15,25 +15,29 @@ function optionalEnv(key: string, defaultValue?: string): string | undefined {
   return process.env[key]?.trim() ?? defaultValue;
 }
 
-/** AI configuration — supports both direct Anthropic and OpenRouter */
+/** AI configuration — Google Gemini (direct) preferred, OpenRouter fallback */
 export const aiConfig = {
-  /** OpenRouter API key (preferred for now) */
+  /** Google AI API key (preferred — fast, free tier) */
+  get googleAiApiKey() {
+    return optionalEnv("GOOGLE_AI_API_KEY");
+  },
+  /** Gemini model identifier */
+  get geminiModel() {
+    return optionalEnv("GEMINI_MODEL", "gemini-2.0-flash") as string;
+  },
+  /** OpenRouter API key (fallback) */
   get openRouterApiKey() {
     return optionalEnv("OPENROUTER_API_KEY");
   },
-  /** Direct Anthropic API key (future) */
-  get anthropicApiKey() {
-    return optionalEnv("ANTHROPIC_API_KEY");
+  /** OpenRouter model identifier */
+  get openRouterModel() {
+    return optionalEnv("ANTHROPIC_MODEL", "google/gemini-2.0-flash-exp:free") as string;
   },
-  /** Model identifier — OpenRouter format */
-  get model() {
-    return optionalEnv("ANTHROPIC_MODEL", "qwen/qwen3-vl-30b-a3b-thinking") as string;
-  },
-  /** Which provider to use */
-  get provider(): "openrouter" | "anthropic" {
+  /** Which provider is active */
+  get provider(): "google" | "openrouter" {
+    if (optionalEnv("GOOGLE_AI_API_KEY")) return "google";
     if (optionalEnv("OPENROUTER_API_KEY")) return "openrouter";
-    if (optionalEnv("ANTHROPIC_API_KEY")) return "anthropic";
-    throw new Error("Either OPENROUTER_API_KEY or ANTHROPIC_API_KEY must be set");
+    throw new Error("Set GOOGLE_AI_API_KEY (preferred) or OPENROUTER_API_KEY");
   },
 };
 
