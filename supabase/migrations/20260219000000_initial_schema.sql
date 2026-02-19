@@ -1,9 +1,6 @@
--- Enable UUID extension
-create extension if not exists "uuid-ossp";
-
 -- Loads table (core entity)
 create table loads (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   load_number text not null,
   status text not null default 'created' check (status in ('created','tendered','accepted','in_transit','delivered','invoiced','paid')),
   
@@ -51,7 +48,7 @@ create table loads (
 
 -- Invoices table
 create table invoices (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   load_id uuid references loads(id) on delete cascade,
   invoice_number text not null,
   
@@ -82,7 +79,7 @@ create table invoices (
 
 -- Documents table (BOL photos, PODs, etc.)
 create table documents (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   load_id uuid references loads(id) on delete cascade,
   type text not null check (type in ('bol','pod','rate_confirmation','invoice','other')),
   file_url text not null,
