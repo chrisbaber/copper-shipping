@@ -9,8 +9,8 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Kingdom Family Brokerage | Invoice Automation",
-  description: "AI-powered invoice automation for freight brokers. Upload a Bill of Lading, get a professional invoice in seconds.",
+  title: "Kingdom Family Brokerage | Freight Broker &amp; Logistics — Fort Worth, TX",
+  description: "Kingdom Family Brokerage connects shippers with reliable carriers across Texas. Asset-based trucking, expert freight brokerage, and broker training academy. MC# 1750411.",
 };
 
 export default function RootLayout({
