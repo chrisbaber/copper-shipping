@@ -15,10 +15,10 @@ function optionalEnv(key: string, defaultValue?: string): string | undefined {
   return process.env[key]?.trim() ?? defaultValue;
 }
 
-/** AI configuration — Google Gemini Flash (direct API) */
+/** AI configuration — Gemini Flash via OpenRouter */
 export const aiConfig = {
-  get googleAiApiKey() {
-    return requireEnv("GOOGLE_AI_API_KEY");
+  get openRouterApiKey() {
+    return requireEnv("OPENROUTER_API_KEY");
   },
 };
 
