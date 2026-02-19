@@ -34,14 +34,15 @@ export async function POST(req: NextRequest) {
     const pdfBytes = await pdfFile.arrayBuffer();
     const pdfBuffer = Buffer.from(pdfBytes);
 
-    const port = parseInt(process.env.SMTP_PORT || "465", 10);
+    const host = process.env.SMTP_HOST!.trim();
+    const port = parseInt((process.env.SMTP_PORT || "465").trim(), 10);
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
+      host,
       port,
       secure: port === 465,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: process.env.SMTP_USER!.trim(),
+        pass: process.env.SMTP_PASS!.trim(),
       },
     });
 
