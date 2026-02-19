@@ -37,8 +37,8 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If not authenticated and trying to access /app, redirect to login
-  if (!user && request.nextUrl.pathname.startsWith("/app")) {
+  // If not authenticated and trying to access /board, redirect to login
+  if (!user && request.nextUrl.pathname.startsWith("/board")) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -48,5 +48,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/app/:path*"],
+  matcher: ["/board/:path*"],
 };

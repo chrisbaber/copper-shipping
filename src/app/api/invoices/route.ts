@@ -18,7 +18,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("invoices")
-    .select("*")
+    .select("*, loads(*)")
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -102,4 +102,64 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ data: { load, invoice } });
+}
+
+export async function PATCH(req: NextRequest) {
+  const supabase = getAdminClient();
+  if (!supabase) {
+    return NextResponse.json(
+      { error: "Database not configured" },
+      { status: 503 }
+    );
+  }
+
+  const body = await req.json();
+  const loadId = body.loadId;
+
+  if (!loadId) {
+    return NextResponse.json({ error: "loadId required" }, { status: 400 });
+  }
+
+  // Update load fields if provided
+  const loadUpdate: Record<string, unknown> = {};
+  if (body.shipperName !== undefined) loadUpdate.shipper_name = body.shipperName;
+  if (body.pickupAddress !== undefined) loadUpdate.pickup_address = body.pickupAddress;
+  if (body.pickupDate !== undefined) loadUpdate.pickup_date = body.pickupDate || null;
+  if (body.deliveryAddress !== undefined) loadUpdate.delivery_address = body.deliveryAddress;
+  if (body.deliveryDate !== undefined) loadUpdate.delivery_date = body.deliveryDate || null;
+  if (body.commodity !== undefined) loadUpdate.commodity = body.commodity;
+  if (body.weight !== undefined) loadUpdate.weight = body.weight;
+  if (body.carrierName !== undefined) loadUpdate.carrier_name = body.carrierName;
+
+  if (Object.keys(loadUpdate).length > 0) {
+    await supabase.from("loads").update(loadUpdate).eq("id", loadId);
+  }
+
+  // Update invoice fields
+  const invoiceUpdate: Record<string, unknown> = {};
+  if (body.invoiceNumber !== undefined) invoiceUpdate.invoice_number = body.invoiceNumber;
+  if (body.billToName !== undefined) invoiceUpdate.bill_to_name = body.billToName;
+  if (body.billToAddress !== undefined) invoiceUpdate.bill_to_address = body.billToAddress;
+  if (body.linehaul !== undefined) invoiceUpdate.linehaul = body.linehaul;
+  if (body.fuelSurcharge !== undefined) invoiceUpdate.fuel_surcharge = body.fuelSurcharge;
+  if (body.accessorial !== undefined) invoiceUpdate.accessorial = body.accessorial;
+  if (body.totalAmount !== undefined) invoiceUpdate.total_amount = body.totalAmount;
+  if (body.emailSentTo) {
+    invoiceUpdate.status = "sent";
+    invoiceUpdate.sent_at = new Date().toISOString();
+    invoiceUpdate.sent_to_email = body.emailSentTo;
+  }
+
+  if (Object.keys(invoiceUpdate).length > 0) {
+    const { error } = await supabase
+      .from("invoices")
+      .update(invoiceUpdate)
+      .eq("load_id", loadId);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  }
+
+  return NextResponse.json({ success: true });
 }

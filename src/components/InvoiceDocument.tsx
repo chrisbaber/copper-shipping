@@ -339,6 +339,33 @@ export function InvoiceDocument({ data, logoUrl }: InvoiceDocumentProps) {
           </View>
         </View>
 
+        {/* Payment Instructions */}
+        <Text style={styles.sectionTitle}>Payment Instructions</Text>
+        <View style={styles.sectionBox}>
+          <Text style={{ fontSize: 9, color: "#1a1a1a", marginBottom: 4 }}>
+            Please remit payment to:
+          </Text>
+          <Text style={{ fontSize: 10, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 }}>
+            {data.broker.companyName}
+          </Text>
+          <Text style={{ fontSize: 9, color: "#1a1a1a", marginBottom: 1 }}>
+            Bank of America
+          </Text>
+          <View style={{ flexDirection: "row", gap: 20, marginTop: 4 }}>
+            <View style={styles.row}>
+              <Text style={{ ...styles.label, width: 70 }}>Account #:</Text>
+              <Text style={{ ...styles.value, fontWeight: 600 }}>488135011117</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={{ ...styles.label, width: 70 }}>Routing #:</Text>
+              <Text style={{ ...styles.value, fontWeight: 600 }}>111 000 025</Text>
+            </View>
+          </View>
+          <Text style={{ fontSize: 8, color: "#666", marginTop: 6 }}>
+            Payment Terms: Due upon receipt
+          </Text>
+        </View>
+
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
