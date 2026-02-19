@@ -151,9 +151,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   logoImage: {
-    width: 50,
-    height: 50,
+    width: 120,
+    height: 60,
     marginBottom: 6,
+    objectFit: "contain" as const,
   },
 });
 

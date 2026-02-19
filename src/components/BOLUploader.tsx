@@ -72,7 +72,7 @@ export function BOLUploader({ onExtracted, onError }: BOLUploaderProps) {
           ${isProcessing ? "pointer-events-none opacity-60" : ""}
         `}
       >
-        <input {...getInputProps()} />
+        <input {...getInputProps()} capture="environment" />
 
         {isProcessing ? (
           <div className="flex flex-col items-center gap-3">

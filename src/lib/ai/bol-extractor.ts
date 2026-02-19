@@ -44,10 +44,14 @@ Return a JSON object with exactly these fields (use empty string "" if a field i
 }
 
 IMPORTANT:
-- Parse handwritten text carefully, especially dates and numbers
-- For dates, convert to YYYY-MM-DD format regardless of how they're written
+- Parse handwritten text carefully — especially dates, names, and numbers
+- For handwritten numbers, be extra careful distinguishing: 0 vs 9, 1 vs 7, 2 vs Z
+- For handwritten names, consider that "Rolfe" might look like "Rolpe" or "Lirope" — use context clues
+- For dates, convert to YYYY-MM-DD format regardless of how they're written (e.g., "2/16/26" = "2026-02-16")
 - If a field spans multiple lines on the document, combine them
 - Look for reference numbers that start with prefixes like KFB#, THT, etc.
+- The "Carrier" field may list multiple entities — include all of them
+- The carrier name and the broker name may overlap (e.g., "Kingdom Family" is the broker, the carrier might be listed separately)
 - Return ONLY the JSON object, no markdown formatting or explanation`;
 
 export async function extractBolData(

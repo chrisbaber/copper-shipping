@@ -71,6 +71,10 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailTo, setEmailTo] = useState("");
 
   const handleExtracted = (data: Record<string, unknown>) => {
     const bolData = data as unknown as BolExtractedData;
@@ -84,11 +88,13 @@ export default function Home() {
     if (!invoiceData) return;
     setIsGenerating(true);
     try {
-      const doc = <InvoiceDocument data={invoiceData} />;
+      const doc = <InvoiceDocument data={invoiceData} logoUrl="/kfb-logo.png" />;
       const blob = await pdf(doc).toBlob();
       const url = URL.createObjectURL(blob);
+      setPdfBlob(blob);
       setPdfUrl(url);
       setStep("done");
+      setEmailSent(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate PDF");
     } finally {
@@ -102,6 +108,35 @@ export default function Home() {
     a.href = pdfUrl;
     a.download = `Invoice-${invoiceData.invoiceNumber}-${invoiceData.invoiceDate}.pdf`;
     a.click();
+  };
+
+  const handleSendEmail = async () => {
+    if (!pdfBlob || !invoiceData || !emailTo) return;
+    setIsSendingEmail(true);
+    try {
+      const formData = new FormData();
+      formData.append("pdf", pdfBlob, `Invoice-${invoiceData.invoiceNumber}.pdf`);
+      formData.append("to", emailTo);
+      formData.append("invoiceNumber", invoiceData.invoiceNumber);
+      formData.append("amount", invoiceData.charges.totalAmountDue.toString());
+      formData.append("brokerName", invoiceData.broker.companyName);
+
+      const response = await fetch("/api/invoice/send", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        setError(result.error || "Failed to send email");
+        return;
+      }
+      setEmailSent(true);
+    } catch {
+      setError("Failed to send email");
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   const handleReset = () => {
@@ -175,6 +210,36 @@ export default function Home() {
         {step === "preview" && invoiceData && (
           <Suspense fallback={<div className="text-center py-8 text-zinc-500">Loading preview...</div>}>
             <div className="space-y-4">
+              {/* Rate input — prominent at top since this is the key field not on BOL */}
+              <div className="rounded-xl border-2 border-blue-200 bg-blue-50 p-4">
+                <label className="block text-sm font-semibold text-blue-900 mb-2">
+                  Shipper Rate (Linehaul)
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-blue-900">$</span>
+                  <input
+                    type="number"
+                    value={invoiceData.charges.linehaul || ""}
+                    onChange={(e) => {
+                      const rate = Number.parseFloat(e.target.value) || 0;
+                      setInvoiceData({
+                        ...invoiceData,
+                        charges: {
+                          ...invoiceData.charges,
+                          linehaul: rate,
+                          totalAmountDue: rate + invoiceData.charges.fuelSurcharge + invoiceData.charges.accessorial,
+                        },
+                      });
+                    }}
+                    placeholder="640.00"
+                    className="flex-1 rounded-lg border border-blue-300 px-4 py-2.5 text-lg font-semibold text-zinc-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <p className="text-xs text-blue-700 mt-1">
+                  Enter the rate agreed with the shipper. This is not on the BOL.
+                </p>
+              </div>
+
               <InvoicePreview data={invoiceData} onChange={setInvoiceData} />
               <button
                 onClick={handleGeneratePdf}
@@ -219,6 +284,36 @@ export default function Home() {
               >
                 Edit
               </button>
+            </div>
+
+            {/* Email Send */}
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 space-y-3">
+              <h3 className="text-sm font-semibold text-zinc-800">Email Invoice to Shipper</h3>
+              {emailSent ? (
+                <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 rounded-lg p-3">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Invoice sent to {emailTo}
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={emailTo}
+                    onChange={(e) => setEmailTo(e.target.value)}
+                    placeholder="shipper@example.com"
+                    className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={handleSendEmail}
+                    disabled={isSendingEmail || !emailTo}
+                    className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isSendingEmail ? "Sending..." : "Send"}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
