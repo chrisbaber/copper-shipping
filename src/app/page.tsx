@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ParticleTunnelLoader } from "@/components/three/ParticleTunnelLoader";
 
 export default function LandingPage() {
   return (
@@ -21,7 +22,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link
-              href="/app"
+              href="/login"
               className="text-[13px] font-medium text-white/60 hover:text-white transition-colors hidden sm:block"
             >
               Portal Login
@@ -38,13 +39,15 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative pt-32 pb-24 px-6">
-        {/* Background gradient orbs */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] opacity-30 pointer-events-none">
+        {/* 3D Particle tunnel background */}
+        <ParticleTunnelLoader />
+        {/* Fallback gradient orbs (visible while Three.js loads) */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] opacity-20 pointer-events-none">
           <div className="absolute top-20 left-0 w-96 h-96 bg-blue-600 rounded-full blur-[128px]" />
           <div className="absolute top-40 right-0 w-80 h-80 bg-indigo-500 rounded-full blur-[128px]" />
         </div>
 
-        <div className="relative mx-auto max-w-4xl text-center">
+        <div className="relative z-10 mx-auto max-w-4xl text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 text-[12px] font-medium text-white/50 mb-8">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -83,7 +86,7 @@ export default function LandingPage() {
         </div>
 
         {/* Stats bar */}
-        <div className="relative mx-auto max-w-3xl mt-20 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="relative z-10 mx-auto max-w-3xl mt-20 grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { value: "MC# 1750411", label: "Licensed & Bonded" },
             { value: "7+", label: "Carrier Partners" },
