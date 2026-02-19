@@ -15,29 +15,10 @@ function optionalEnv(key: string, defaultValue?: string): string | undefined {
   return process.env[key]?.trim() ?? defaultValue;
 }
 
-/** AI configuration — Google Gemini (direct) preferred, OpenRouter fallback */
+/** AI configuration — Google Gemini Flash (direct API) */
 export const aiConfig = {
-  /** Google AI API key (preferred — fast, free tier) */
   get googleAiApiKey() {
-    return optionalEnv("GOOGLE_AI_API_KEY");
-  },
-  /** Gemini model identifier */
-  get geminiModel() {
-    return optionalEnv("GEMINI_MODEL", "gemini-2.0-flash") as string;
-  },
-  /** OpenRouter API key (fallback) */
-  get openRouterApiKey() {
-    return optionalEnv("OPENROUTER_API_KEY");
-  },
-  /** OpenRouter model identifier */
-  get openRouterModel() {
-    return optionalEnv("ANTHROPIC_MODEL", "google/gemini-2.0-flash-exp:free") as string;
-  },
-  /** Which provider is active */
-  get provider(): "google" | "openrouter" {
-    if (optionalEnv("GOOGLE_AI_API_KEY")) return "google";
-    if (optionalEnv("OPENROUTER_API_KEY")) return "openrouter";
-    throw new Error("Set GOOGLE_AI_API_KEY (preferred) or OPENROUTER_API_KEY");
+    return requireEnv("GOOGLE_AI_API_KEY");
   },
 };
 
