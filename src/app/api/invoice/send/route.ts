@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
       `,
       attachments: [
         {
-          filename: `Invoice-${invoiceNumber}.pdf`,
+          filename: `${brokerName.split(",")[0]?.trim() || "Invoice"}-${invoiceNumber}-${shipperName.replace(/[^a-zA-Z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "") || "Invoice"}.pdf`,
           content: pdfBuffer,
           contentType: "application/pdf",
         },

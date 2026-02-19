@@ -117,7 +117,8 @@ export default function SendPage({ params }: { params: Promise<{ id: string }> }
     if (!pdfUrl || !invoiceData) return;
     const a = document.createElement("a");
     a.href = pdfUrl;
-    a.download = `Invoice-${invoiceData.invoiceNumber}-${invoiceData.invoiceDate}.pdf`;
+    const billTo = invoiceData.billTo.name.replace(/[^a-zA-Z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    a.download = `${invoiceData.broker.companyName?.split(",")[0]?.trim() || "Invoice"}-${invoiceData.invoiceNumber}-${billTo}-${invoiceData.invoiceDate}.pdf`;
     a.click();
   };
 
