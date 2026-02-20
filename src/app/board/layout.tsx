@@ -1,10 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function BoardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
@@ -48,6 +57,12 @@ export default function BoardLayout({ children }: { children: React.ReactNode })
             >
               Upload BOL
             </Link>
+            <button
+              onClick={handleSignOut}
+              className="rounded-lg px-3 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors cursor-pointer"
+            >
+              Sign Out
+            </button>
           </nav>
         </div>
       </header>
